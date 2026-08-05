@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { SiteShell } from "./site-shell";
 
 const slides = ["/images/hero-1.jpg", "/images/hero-2.jpg", "/images/hero-3.jpg"];
@@ -63,9 +64,9 @@ export default function Home() {
               core programs—classes, performances, exhibitions, and summer camp.
             </h1>
             <div className="hero-actions">
-              <a className="light-button" href="/theater/">Live at the Lane</a>
+              <Link className="light-button" href="/theater/">Live at the Lane</Link>
               <a className="light-button" href="https://canvas.allenslane.org/">Classes</a>
-              <a className="light-button" href="/about/membership/">Membership</a>
+              <Link className="light-button" href="/about/membership/">Membership</Link>
               <a className="light-button" href="https://canvas.allenslane.org/">Calendar of Events</a>
             </div>
           </div>

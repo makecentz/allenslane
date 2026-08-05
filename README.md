@@ -12,6 +12,7 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Customer email/password sign-in, sign-up, recovery, onboarding, and account shell implemented at `/account`
 - Staff sign-in, mandatory TOTP enrollment/challenge, and permission-aware portal shell implemented at `/staff`
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
+- Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
 - Production Auth/Resend configuration and write-capable operational modules pending
 
 ## Local frontend

@@ -26,6 +26,7 @@ The public frontend retains its established layout. Customer and staff account s
 - Customer onboarding RPC that creates one retry-safe primary household
 - Customer account shell plus a staff portal that requires an active staff record and TOTP-backed `aal2` session
 - Read-only Finance overview for authorized staff to monitor orders, payments, paper-check refunds, and reconciliation status
+- Read-only People & Households directory for authorized staff, with contact search and explicit exclusion of sensitive participant details
 - Initial staff bootstrap function restricted to database administration
 - Manual cutover CSV templates and reconciliation controls
 - Local reset, lint, and security tests

@@ -90,3 +90,14 @@ test("server-renders the protected finance overview shell", async () => {
   assert.match(html, /Read-only visibility into orders, payments, paper-check refunds, and reconciliation status/i);
   assert.match(html, /Loading protected finance records/i);
 });
+
+test("server-renders the protected people directory shell", async () => {
+  const response = await render("/staff/people");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>People Directory \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Find customer contact records and their active household relationships/i);
+  assert.match(html, /Loading protected people records/i);
+});
