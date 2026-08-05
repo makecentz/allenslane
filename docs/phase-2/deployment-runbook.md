@@ -61,7 +61,7 @@ select private.bootstrap_initial_staff(
 
 Completed August 5, 2026: the verified Auth account was activated with the `system_admin` and `finance_approver` roles. TOTP enrollment remains required before protected staff access.
 
-Gerrell enrolled application TOTP on August 5, 2026. Tara Harrison Turner accepted the separate Supabase organization Administrator invitation for recovery on August 5, 2026; she receives no application or Finance role from this organization-level access. Enable dashboard-account MFA for both organization administrators.
+Gerrell enrolled application TOTP on August 5, 2026. Tara Harrison Turner accepted the separate Supabase organization Administrator invitation for recovery on August 5, 2026. On the same date, Gerrell and Tara were assigned all 12 application roles as super administrators through the audited staff-access workflow. Tara must still accept her application invitation and enroll TOTP before her staff permissions are usable. Enable dashboard-account MFA for both organization administrators.
 
 ## 6. Configure hosted secrets
 
@@ -83,7 +83,7 @@ Create hosted secrets without committing their values:
 - Confirm a staff user at `aal1` receives no staff-wide data access.
 - Confirm the same staff user at `aal2` receives only permissions assigned to active roles.
 - Confirm a system administrator cannot approve a refund without the Finance-approver role.
-- Confirm Gerrell can approve a paper-check refund at `aal2` and the audit event is written.
+- Confirm Gerrell and, after invitation acceptance and TOTP enrollment, Tara can each approve a paper-check refund at `aal2` and the audit event is written.
 - Confirm uploaded media works and private documents are not public.
 - Perform and document one isolated database-and-object restore before accepting live transactions.
 

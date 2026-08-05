@@ -12,7 +12,7 @@
 | Theater ticketing | Retain the external provider initially. | Approved |
 | Supabase ownership | Organization owner: `allenslane`; intended project: `alanedb`. | Approved; connection pending |
 | Canvas source data | A usable export cannot be obtained. Canvas remains the read-only historical source; only verified active/opening data is manually migrated. | Approved constraint |
-| Permissions and finance approval | Gerrell Jones (`ecomexpertsllc@gmail.com`) is the Finance approver. Refunds and voids are performed by the Finance approver. | Approved |
+| Permissions and finance approval | Gerrell Jones (`ecomexpertsllc@gmail.com`) and Tara Harrison Turner (`tara@allenslane.org`) hold every application role as super administrators, including Finance Approver. Refunds and voids require an MFA-verified Finance Approver. | Approved August 5, 2026 |
 | Customer authentication | Email and password. | Approved |
 | DNS ownership | Namecheap manages `allenslane.org` DNS. | Confirmed; credential/access owner pending |
 | Technical contact | Gerrell Jones (`ecomexpertsllc@gmail.com`). | Confirmed |
@@ -39,7 +39,7 @@ Priority meanings:
 | DEC-08 | P1 | Will Mailchimp remain the marketing-email system? | **Resolved:** retain initially; use a separate provider for transactional email |
 | DEC-09 | P1 | Which accounting system receives reconciliation exports? | **Resolved:** QuickBooks Online. Begin with reviewed exports/imports; decide whether a direct API sync is justified after reconciliation rules are proven |
 | DEC-10 | P1 | What are the refund, transfer, credit, cancellation, and waitlist-promotion rules by program? | **Partially resolved:** monetary refunds are issued offline by check only. Program-specific cancellation, transfer, credit, and waitlist rules remain pending |
-| DEC-11 | P1 | Which roles may refund, void, discount, credit, export, merge records, or view donor/minor data? | **Partially resolved:** Gerrell Jones is the Finance approver and alone completes refunds/voids. Thresholds and remaining capabilities are pending |
+| DEC-11 | P1 | Which roles may refund, void, discount, credit, export, merge records, or view donor/minor data? | **Partially resolved:** Gerrell Jones and Tara Harrison Turner hold Finance Approver as super administrators; either may complete audited refunds/voids after MFA. Thresholds and remaining capabilities are pending |
 | DEC-12 | P1 | How are household invitations and guardian authority verified? | Primary guardian invites adults; staff override is audited |
 | DEC-13 | P1 | Which releases/waivers and emergency fields are required for youth and camp? | Versioned acceptance tied to participant and registration |
 | DEC-14 | P1 | What data retention and deletion policies apply? | Written schedule covering finance, minors, donors, communications, and audit logs |

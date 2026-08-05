@@ -35,7 +35,7 @@ Supabase is the selected data platform for Phase 2 evaluation. The organization 
 - Resend is the recommended transactional-email provider, subject to account and sending-domain approval.
 - Namecheap manages DNS for `allenslane.org`.
 - Customers will sign in with email and password; staff MFA remains the recommended production control.
-- Gerrell Jones (`ecomexpertsllc@gmail.com`) is the named Finance approver and technical/Supabase contact.
+- Gerrell Jones (`ecomexpertsllc@gmail.com`) remains the primary technical/Supabase contact. Gerrell and Tara Harrison Turner (`tara@allenslane.org`) now both hold the Finance Approver role as super administrators.
 - Customer refunds are issued offline by check only. Refund and void actions require the Finance approver; the application must record the adjustment and approval without automatically issuing a Stripe refund.
 - Supabase production region is **East US (North Virginia)**.
 - MFA is mandatory for every staff account, using an authenticator app and an administrative recovery procedure. Customer MFA is optional and is not required for launch.

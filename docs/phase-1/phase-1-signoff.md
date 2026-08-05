@@ -30,7 +30,7 @@ Unless stakeholders decide otherwise, planning will use these defaults:
 ### Scope and ownership
 
 - [ ] Operational product owner named
-- [x] Finance/reconciliation approver named (Gerrell Jones, `ecomexpertsllc@gmail.com`)
+- [x] Finance/reconciliation approvers named (Gerrell Jones, `ecomexpertsllc@gmail.com`; Tara Harrison Turner, `tara@allenslane.org`)
 - [ ] Marketing/content approver named
 - [ ] Development/membership/giving approver named
 - [x] Technical/Supabase contact named (Gerrell Jones, `ecomexpertsllc@gmail.com`)

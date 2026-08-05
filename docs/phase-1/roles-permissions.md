@@ -36,7 +36,7 @@ These will be migrated as person classifications or relationships, not as access
 | Support / operations admin | Manage staff accounts, configuration, facilities, imports, and operational support without automatic finance authority. |
 | System administrator | Manage infrastructure and emergency access; use should be rare and audited. |
 
-Gerrell Jones (`ecomexpertsllc@gmail.com`) is the initial Finance approver. Because the same person is also the technical/Supabase contact, every use of Finance-approver or emergency-administration capability must be logged and reviewed. Add a second organization administrator before production so account recovery does not depend on one person.
+Gerrell Jones (`ecomexpertsllc@gmail.com`) and Tara Harrison Turner (`tara@allenslane.org`) were assigned all 12 application roles as super administrators on August 5, 2026, including Finance Approver and System Administrator. Tara's staff invitation must still be accepted and TOTP enrolled before her permissions become usable. Every use of Finance-approver or emergency-administration capability must be logged and reviewed.
 
 ## Capability matrix
 

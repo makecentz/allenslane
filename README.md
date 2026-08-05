@@ -16,7 +16,7 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Read-only Programs & Registration overview implemented at `/staff/programs` with role-scoped catalog, term, capacity, enrollment, and waitlist visibility
 - Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
 - Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation is intentionally deferred until final-domain launch
-- Tara Harrison Turner accepted the separate Supabase organization Administrator invitation, completing the backup-owner continuity gate
+- Gerrell Jones and Tara Harrison Turner are active super administrators with all 12 application roles; Tara's staff-portal invitation remains pending acceptance and MFA enrollment
 - Remaining write-capable operational modules are next; final-domain DNS and Resend configuration are reserved for the last launch step
 
 ## Local frontend
@@ -75,4 +75,4 @@ npm run supabase:stop
 - Every staff account requires TOTP MFA and an `aal2` session.
 - Stripe secrets, Supabase secret/service-role keys, Resend credentials, QuickBooks credentials, and backup keys are never committed or exposed to browser code.
 - Canvas remains the read-only historical source; the new system accepts only verified active/opening cutover data.
-- Refunds are issued offline by paper check and approved by Gerrell Jones as Finance approver.
+- Refunds are issued offline by paper check and require an MFA-verified Finance Approver; Gerrell Jones and Tara Harrison Turner currently hold that role as super administrators.
