@@ -57,6 +57,8 @@ select private.bootstrap_initial_staff(
 );
 ```
 
+Completed August 5, 2026: the verified Auth account was activated with the `system_admin` and `finance_approver` roles. TOTP enrollment remains required before protected staff access.
+
 Gerrell must enroll TOTP before using staff data. Add a different second organization administrator for recovery; do not grant Finance approval merely because that person administers Supabase.
 
 ## 6. Configure hosted secrets

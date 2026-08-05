@@ -66,4 +66,4 @@ The public frontend retains its established layout. Customer and staff account s
 
 ## Live-project gate
 
-The five migrations are deployed to the production `alanedb` project in East US (North Virginia). Do not enable customer or staff traffic until Gerrell Jones has a verified Auth account, a second organization administrator is named, Auth/SMTP settings are production-ready, and server secrets are stored through the approved host rather than committed files.
+The five migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones now has a verified Auth account with active System Administrator and Finance Approver roles; protected staff access still requires TOTP enrollment. Do not enable transactional traffic until a second organization administrator is named, Auth/SMTP settings are production-ready, and server secrets are stored through the approved host rather than committed files.
