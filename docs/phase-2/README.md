@@ -67,4 +67,4 @@ The public frontend retains its established layout. Customer and staff account s
 
 ## Live-project gate
 
-The five migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones now has a verified Auth account with active System Administrator and Finance Approver roles; protected staff access still requires TOTP enrollment. Do not enable transactional traffic until a second organization administrator is named, Auth/SMTP settings are production-ready, and server secrets are stored through the approved host rather than committed files.
+The five migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones has a verified Auth account, active System Administrator and Finance Approver roles, and a verified TOTP factor. Tara Harrison Turner (`tara@allenslane.org`) has been invited as the separate Supabase organization Administrator; the continuity gate remains pending until she accepts. Do not enable transactional traffic until Auth/SMTP settings are production-ready and server secrets are stored through the approved host rather than committed files.
