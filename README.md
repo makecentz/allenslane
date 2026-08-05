@@ -1,100 +1,68 @@
-# vinext-starter
+# Allens Lane Art Center Platform
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+This repository contains the public Allens Lane Art Center website clone and the Supabase foundation for the future customer and staff operations platform.
 
-## Prerequisites
+## Current status
 
-- Node.js `>=22.13.0`
+- Public multi-route frontend clone implemented with Vinext/Next.js
+- ChatGPT sign-in removed; public pages open directly
+- Phase 1 requirements, permissions, migration, retention, and integration decisions documented in `docs/phase-1/`
+- Phase 2 Supabase schema, RLS, staff MFA enforcement, audit trail, Storage policies, manual cutover boundary, and security assertions implemented in `supabase/`
+- Live Supabase project connection and customer/staff application screens pending
 
-## Quick Start
+## Local frontend
 
-```bash
+Requires Node.js 22.13 or newer.
+
+```powershell
 npm install
 npm run dev
+```
+
+Validate the production build:
+
+```powershell
 npm run build
+npm test
 ```
 
-This starter does not use `wrangler.jsonc`.
+## Local Supabase
 
-## Included Shape
+Requires Docker Desktop.
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```powershell
+npm run supabase:start
+npm run supabase:reset
+npm run supabase:lint
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+Run the executable security assertions on Windows after the local stack starts:
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+```powershell
+Get-Content -Raw supabase/tests/security.sql |
+  docker exec -i supabase_db_alanedb psql -U postgres -d postgres
+```
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+Stop the local stack:
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+```powershell
+npm run supabase:stop
+```
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+## Documentation
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+- `SITEMAP.md` — audited public-site map
+- `docs/phase-1/README.md` — requirements and legacy-system audit
+- `docs/phase-2/README.md` — implemented Supabase foundation
+- `docs/phase-2/architecture.md` — components, data schemas, and trust boundaries
+- `docs/phase-2/deployment-runbook.md` — live `alanedb` deployment and bootstrap sequence
+- `docs/phase-2/manual-cutover-plan.md` — no-export cutover and reconciliation process
 
-## Useful Commands
+## Production rules
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+- Production Supabase belongs to the `allenslane` organization and uses East US (North Virginia).
+- Customers authenticate with verified email/password.
+- Every staff account requires TOTP MFA and an `aal2` session.
+- Stripe secrets, Supabase secret/service-role keys, Resend credentials, QuickBooks credentials, and backup keys are never committed or exposed to browser code.
+- Canvas remains the read-only historical source; the new system accepts only verified active/opening cutover data.
+- Refunds are issued offline by paper check and approved by Gerrell Jones as Finance approver.

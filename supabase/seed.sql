@@ -1,0 +1,3 @@
+-- Production reference data is inserted by migrations.
+-- Keep local-only fixtures out of the default seed so customer, minor, donor,
+-- and financial data are never copied into development accidentally.
