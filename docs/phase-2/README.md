@@ -28,6 +28,7 @@ The public frontend retains its established layout. Customer and staff account s
 - Read-only Finance overview for authorized staff to monitor orders, payments, paper-check refunds, and reconciliation status
 - Read-only People & Households directory for authorized staff, with contact search and explicit exclusion of sensitive participant details
 - Read-only Programs & Registration overview for authorized staff, with role-scoped catalog, term, schedule, capacity, enrollment, and waitlist summaries and no participant details
+- Read-only Content & Events overview for authorized staff, with role-scoped editorial inventory, publication pipeline, event schedules, hero-media readiness, and validated HTTPS ticketing links
 - Controlled Administration & Audit workspace for MFA-verified authorized staff to activate existing accounts, grant or revoke roles, change staff status, and review privileged events
 - Protected staff-invitation Edge Function with verified JWT, exact-origin CORS, MFA and permission checks, Auth invitation delivery, and guarded role activation
 - Initial staff bootstrap function restricted to database administration

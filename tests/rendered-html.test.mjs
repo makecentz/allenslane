@@ -118,6 +118,19 @@ test("server-renders the protected programs and registration overview shell", as
   assert.match(staffPortal, /href: "\/staff\/programs"/i);
 });
 
+test("server-renders the protected content and events overview shell", async () => {
+  const response = await render("/staff/content");
+  const staffPortal = await readFile(new URL("../app/staff/staff-portal.tsx", import.meta.url), "utf8");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>Content &amp; Events \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Review editorial content, publication readiness, event schedules, and retained ticketing links/i);
+  assert.match(html, /Loading protected content and event records/i);
+  assert.match(staffPortal, /href: "\/staff\/content"/i);
+});
+
 test("server-renders the protected administration overview shell", async () => {
   const response = await render("/staff/admin");
   const administration = await readFile(new URL("../app/staff/admin/administration-overview.tsx", import.meta.url), "utf8");

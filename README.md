@@ -14,6 +14,7 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
 - Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
 - Read-only Programs & Registration overview implemented at `/staff/programs` with role-scoped catalog, term, capacity, enrollment, and waitlist visibility
+- Read-only Content & Events overview implemented at `/staff/content` with role-scoped editorial inventory, publication status, event schedules, media readiness, and external ticketing links
 - Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
 - Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation is intentionally deferred until final-domain launch
 - Gerrell Jones and Tara Harrison Turner are active super administrators with all 12 application roles; Tara's staff-portal invitation remains pending acceptance and MFA enrollment

@@ -15,7 +15,7 @@ type PermissionRow = { permission: string };
 const modules = [
   { name: "People & households", description: "Customer profiles, relationships, and support records.", prefixes: ["people.", "minors."], href: "/staff/people", linkLabel: "Open people directory" },
   { name: "Programs & registration", description: "Catalog, classes, rosters, registrations, and waitlists.", prefixes: ["catalog.", "registrations.", "rosters."], href: "/staff/programs", linkLabel: "Open programs overview" },
-  { name: "Content & events", description: "Public content, publishing, events, and retained ticketing links.", prefixes: ["content.", "events."] },
+  { name: "Content & events", description: "Public content, publishing, events, and retained ticketing links.", prefixes: ["content.", "events."], href: "/staff/content", linkLabel: "Open content overview" },
   { name: "Finance & development", description: "Payments, reconciliation, memberships, gifts, and reporting.", prefixes: ["finance.", "development.", "reports.", "commerce."], href: "/staff/finance", linkLabel: "Open finance overview" },
   { name: "Administration", description: "Staff access, audit history, and controlled migration tools.", prefixes: ["staff.", "audit.", "migration."], href: "/staff/admin", linkLabel: "Open administration overview" },
 ];
