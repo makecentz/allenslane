@@ -35,6 +35,7 @@ test("server-renders the Allens Lane homepage", async () => {
   assert.match(html, /2026 Fall Session/i);
   assert.match(html, /Thank you to our sponsors!/i);
   assert.match(html, /Philadelphia Cultural Fund/i);
+  assert.match(html, /allenslane\.us1\.list-manage\.com\/subscribe\?u=2738b4d92a840412099e68dba(?:&|&amp;)id=0c13d8b8c1/i);
 });
 
 test("keeps public pages free of ChatGPT sign-in and starter preview artifacts", async () => {

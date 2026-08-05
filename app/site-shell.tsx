@@ -122,7 +122,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <img src="/images/logo-footer.png" alt="" />
             <h2>Sign Up for Our E-Newsletter</h2>
             <p>Get the latest updates about our programming, classes, and events sent right to your inbox!</p>
-            <a href="https://allenslane.us1.list-manage.com/" className="light-button">Sign-Up!</a>
+            <a href="https://allenslane.us1.list-manage.com/subscribe?u=2738b4d92a840412099e68dba&amp;id=0c13d8b8c1" className="light-button">Sign-Up!</a>
           </div>
         </div>
         <a className="map-panel" href="https://maps.google.com/?q=601+W+Allens+Lane+Philadelphia+PA+19119">
