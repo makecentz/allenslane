@@ -15,7 +15,7 @@ export default function StaffAdministrationPage() {
           <div className="container">
             <p className="eyebrow">Staff operations / Administration</p>
             <h1>Administration &amp; Audit</h1>
-            <p>Review staff-account status, role assignments, and recent privileged activity.</p>
+            <p>Manage staff-account status and role assignments with MFA, approval safeguards, and a complete audit trail.</p>
           </div>
         </header>
         <section className="admin-section">

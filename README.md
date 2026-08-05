@@ -8,13 +8,14 @@ This repository contains the public Allens L website clone and the Supabase foun
 - ChatGPT sign-in removed; public pages open directly
 - Phase 1 requirements, permissions, migration, retention, and integration decisions documented in `docs/phase-1/`
 - Phase 2 Supabase schema, RLS, staff MFA enforcement, audit trail, Storage policies, manual cutover boundary, and security assertions implemented in `supabase/`
-- Live `alanedb` Supabase project connected; five production migrations deployed and verified
+- Live `alanedb` Supabase project connected; six production migrations deployed and verified
 - Customer email/password sign-in, sign-up, recovery, onboarding, and account shell implemented at `/account`
 - Staff sign-in, mandatory TOTP enrollment/challenge, and permission-aware portal shell implemented at `/staff`
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
 - Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
-- Read-only Administration & Audit overview implemented at `/staff/admin` for staff-access and audit review
-- Production Auth/Resend configuration and write-capable operational modules pending
+- Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
+- Tara Harrison Turner accepted the separate Supabase organization Administrator invitation, completing the backup-owner continuity gate
+- Production Auth/Resend configuration and remaining write-capable operational modules pending
 
 ## Local frontend
 

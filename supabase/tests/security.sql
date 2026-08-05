@@ -182,4 +182,78 @@ end $$;
 
 rollback;
 
+begin;
+
+insert into auth.users (
+  id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values
+  ('50000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'admin@example.test', 'not-used', now(), '{}', '{"first_name":"Test","last_name":"Admin"}', now(), now()),
+  ('50000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'new-staff@example.test', 'not-used', now(), '{}', '{"first_name":"New","last_name":"Staff"}', now(), now());
+
+insert into public.staff_accounts (auth_user_id, person_id, status)
+select auth_user_id, id, 'active' from public.people
+where auth_user_id = '50000000-0000-4000-8000-000000000001';
+
+insert into public.user_roles (auth_user_id, role, reason)
+values ('50000000-0000-4000-8000-000000000001', 'system_admin', 'Automated staff access test');
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"50000000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',
+  true
+);
+
+select public.activate_existing_staff(
+  'new-staff@example.test',
+  'registrar',
+  'Approved automated staff activation'
+);
+
+do $$
+begin
+  if not exists (
+    select 1 from public.get_staff_access_register()
+    where auth_user_id = '50000000-0000-4000-8000-000000000002'
+      and 'registrar' = any(active_roles)
+  ) then
+    raise exception 'Activated staff account was not returned in the access register';
+  end if;
+
+  begin
+    perform public.manage_staff_role(
+      '50000000-0000-4000-8000-000000000002',
+      'finance_approver',
+      true,
+      'Unauthorized Finance escalation test'
+    );
+    raise exception 'System Administrator without Finance approval changed a Finance role';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  begin
+    insert into public.user_roles (auth_user_id, role, reason)
+    values ('50000000-0000-4000-8000-000000000002', 'front_desk', 'Direct write bypass test');
+    raise exception 'Authenticated role bypassed guarded staff role functions';
+  exception
+    when insufficient_privilege then null;
+  end;
+
+  if not public.set_staff_account_status(
+    '50000000-0000-4000-8000-000000000002',
+    'suspended',
+    'Approved automated suspension test'
+  ) then
+    raise exception 'Staff suspension did not change the account';
+  end if;
+
+  if (select count(*) from public.audit_events where entity_table in ('staff_accounts', 'user_roles')) < 3 then
+    raise exception 'Staff access audit events were not written';
+  end if;
+end $$;
+
+rollback;
+
 \echo 'Security assertions passed.'

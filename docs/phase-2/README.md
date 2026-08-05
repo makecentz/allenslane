@@ -1,6 +1,6 @@
 # Phase 2 — Supabase Foundation
 
-Status: Local foundation implemented and validated; live project connection pending
+Status: Live foundation deployed and validated; controlled staff-access management enabled
 Prepared: August 5, 2026
 
 ## Outcome
@@ -27,7 +27,7 @@ The public frontend retains its established layout. Customer and staff account s
 - Customer account shell plus a staff portal that requires an active staff record and TOTP-backed `aal2` session
 - Read-only Finance overview for authorized staff to monitor orders, payments, paper-check refunds, and reconciliation status
 - Read-only People & Households directory for authorized staff, with contact search and explicit exclusion of sensitive participant details
-- Read-only Administration & Audit overview for authorized staff to review account status, role grants, and privileged events
+- Controlled Administration & Audit workspace for MFA-verified authorized staff to activate existing accounts, grant or revoke roles, change staff status, and review privileged events
 - Initial staff bootstrap function restricted to database administration
 - Manual cutover CSV templates and reconciliation controls
 - Local reset, lint, and security tests
@@ -51,6 +51,7 @@ The public frontend retains its established layout. Customer and staff account s
 - `supabase/migrations/20260805163649_security_audit_rls.sql` — permissions, triggers, RLS, MFA, audit, refunds, and voids
 - `supabase/migrations/20260805163650_auth_onboarding_storage.sql` — Auth trigger, customer onboarding, first-staff bootstrap, and Storage policies
 - `supabase/migrations/20260805163945_harden_privileges_and_foreign_keys.sql` — least-privilege Data API grants and foreign-key indexes
+- `supabase/migrations/20260805194801_staff_access_management.sql` — guarded staff-access RPCs, direct-write revocation, Finance approval checks, recovery protections, and mandatory audit reasons
 - `supabase/tests/security.sql` — executable household, MFA, Finance, and audit assertions
 - `supabase/cutover-templates/` — staff-prepared manual cutover CSVs
 - `architecture.md` — component and trust-boundary design
@@ -66,7 +67,8 @@ The public frontend retains its established layout. Customer and staff account s
 5. Security assertions rejected a non-Finance refund approval.
 6. Security assertions accepted a Finance-approver refund and payment void and confirmed financial audit events.
 7. The fifth hardening migration was applied transactionally to the empty live project and verified with Supabase advisors and direct catalog checks: all public tables use RLS, anonymous grants are read-only on ten catalog/content tables, anonymous RPC execution is disabled, and all foreign keys have covering indexes.
+8. The sixth staff-access migration was syntax-checked and behavior-tested in rollback-only live transactions before deployment. Verification confirmed that direct authenticated writes are revoked, anonymous RPC execution is denied, MFA-backed Staff Management is required, Finance escalation is rejected without Finance Approver authority, status changes and role changes are audited, and last-administrator recovery protections remain active.
 
 ## Live-project gate
 
-The five migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones has a verified Auth account, active System Administrator and Finance Approver roles, and a verified TOTP factor. Tara Harrison Turner (`tara@allenslane.org`) has been invited as the separate Supabase organization Administrator; the continuity gate remains pending until she accepts. Do not enable transactional traffic until Auth/SMTP settings are production-ready and server secrets are stored through the approved host rather than committed files.
+The six migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones has a verified Auth account, active System Administrator and Finance Approver roles, and a verified TOTP factor. Tara Harrison Turner (`tara@allenslane.org`) accepted the separate Supabase organization Administrator invitation on August 5, 2026, completing the backup-owner continuity gate; this organization-level role does not grant application or Finance access. Do not enable transactional traffic until Auth/SMTP settings are production-ready and server secrets are stored through the approved host rather than committed files.

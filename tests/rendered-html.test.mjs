@@ -109,6 +109,6 @@ test("server-renders the protected administration overview shell", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>Administration Overview \| Allens Lane Art Center<\/title>/i);
-  assert.match(html, /Review staff-account status, role assignments, and recent privileged activity/i);
+  assert.match(html, /Manage staff-account status and role assignments with MFA, approval safeguards, and a complete audit trail/i);
   assert.match(html, /Loading protected administration records/i);
 });

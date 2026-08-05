@@ -6,7 +6,7 @@
 - Project: `alanedb`
 - Region: East US (North Virginia)
 - Plan: paid production plan at minimum
-- Add at least two Supabase organization administrators. Tara Harrison Turner (`tara@allenslane.org`) was invited as Administrator on August 5, 2026; confirm acceptance before treating this gate as complete.
+- Add at least two Supabase organization administrators. Tara Harrison Turner (`tara@allenslane.org`) accepted the Administrator invitation on August 5, 2026, completing this continuity gate.
 - Store the generated database password in the organization password manager; do not email or commit it.
 
 ## 2. Configure production Auth before launch
@@ -42,7 +42,7 @@ Review the dry-run output before applying migrations. Do not use production cust
 npx.cmd supabase db push
 ```
 
-Confirm all five migration versions are recorded. Verify RLS, least-privilege Data API grants, foreign-key indexes, Storage buckets, Auth settings, and exposed schemas before creating staff access.
+Confirm all six migration versions are recorded. Verify RLS, guarded staff-access RPCs, least-privilege Data API grants, foreign-key indexes, Storage buckets, Auth settings, and exposed schemas before creating staff access.
 
 ## 5. Bootstrap Gerrell Jones
 
@@ -59,7 +59,7 @@ select private.bootstrap_initial_staff(
 
 Completed August 5, 2026: the verified Auth account was activated with the `system_admin` and `finance_approver` roles. TOTP enrollment remains required before protected staff access.
 
-Gerrell enrolled application TOTP on August 5, 2026. Tara Harrison Turner was invited as the separate Supabase organization Administrator for recovery; she receives no application or Finance role from this invitation. Confirm acceptance and enable dashboard-account MFA for both organization administrators.
+Gerrell enrolled application TOTP on August 5, 2026. Tara Harrison Turner accepted the separate Supabase organization Administrator invitation for recovery on August 5, 2026; she receives no application or Finance role from this organization-level access. Enable dashboard-account MFA for both organization administrators.
 
 ## 6. Configure hosted secrets
 
