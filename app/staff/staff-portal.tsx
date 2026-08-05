@@ -17,7 +17,7 @@ const modules = [
   { name: "Programs & registration", description: "Catalog, classes, rosters, registrations, and waitlists.", prefixes: ["catalog.", "registrations.", "rosters."] },
   { name: "Content & events", description: "Public content, publishing, events, and retained ticketing links.", prefixes: ["content.", "events."] },
   { name: "Finance & development", description: "Payments, reconciliation, memberships, gifts, and reporting.", prefixes: ["finance.", "development.", "reports.", "commerce."], href: "/staff/finance", linkLabel: "Open finance overview" },
-  { name: "Administration", description: "Staff access, audit history, and controlled migration tools.", prefixes: ["staff.", "audit.", "migration."] },
+  { name: "Administration", description: "Staff access, audit history, and controlled migration tools.", prefixes: ["staff.", "audit.", "migration."], href: "/staff/admin", linkLabel: "Open administration overview" },
 ];
 
 function errorMessage(error: unknown) {

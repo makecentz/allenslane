@@ -277,6 +277,54 @@ p { margin: 0 0 1.15rem; }
   .people-search-row label { min-width: 100%; }
 }
 
+/* Administration overview */
+.admin-hero { background-color: #493a56; background-image: linear-gradient(rgba(56, 42, 68, .87), rgba(56, 42, 68, .87)), url('/images/texture-red.jpg'); }
+.admin-hero .eyebrow { color: #ded1e8; }
+.admin-section { background: #efedf1; padding: clamp(3.5rem, 7vw, 6.5rem) 0; }
+.admin-workspace { display: grid; gap: 1.25rem; }
+.admin-panel { background: #fff; border: 1px solid rgba(70, 54, 82, .15); border-radius: .9rem; box-shadow: 0 1rem 2.8rem rgba(50, 39, 59, .08); padding: clamp(1.25rem, 3vw, 2rem); }
+.admin-loading { color: #69606f; display: grid; min-height: 20rem; place-items: center; }
+.admin-gate { align-items: flex-start; display: flex; flex-direction: column; justify-content: center; max-width: 48rem; min-height: 20rem; }
+.admin-gate .dark-button { margin-top: .75rem; }
+.admin-denied { border-top: .6rem solid #a7332b; }
+.admin-toolbar { align-items: end; display: flex; gap: 1.5rem; justify-content: space-between; }
+.admin-toolbar h2 { margin-bottom: 0; }
+.admin-toolbar .eyebrow, .admin-section-heading .eyebrow { color: #70537f; }
+.admin-readonly-note { background: #fff6d9; border: 1px solid #e4cf89; border-radius: .65rem; color: #53461f; font-family: var(--ui); font-size: .82rem; line-height: 1.5; padding: .9rem 1rem; }
+.admin-readonly-note strong { margin-right: .25rem; }
+.admin-metrics { display: grid; gap: 1rem; grid-template-columns: repeat(4, 1fr); }
+.admin-metrics article { background: #4b3d57; border-radius: .75rem; color: #fff; display: grid; gap: .55rem; min-height: 8rem; padding: 1.2rem; }
+.admin-metrics span { font-family: var(--ui); font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.admin-metrics strong { font-family: var(--display); font-size: 2rem; }
+.admin-section-heading { align-items: end; display: flex; gap: 1.5rem; justify-content: space-between; margin-bottom: 1rem; }
+.admin-section-heading h3 { color: #44344e; font-size: 1.2rem; margin: 0; }
+.admin-section-heading > span { color: #766a7c; font-family: var(--ui); font-size: .72rem; }
+.admin-table-scroll { overflow-x: auto; }
+.admin-table-card table { border-collapse: collapse; font-family: var(--ui); font-size: .76rem; width: 100%; }
+.admin-table-card th { border-bottom: 2px solid #4b3d57; color: #61566a; font-size: .66rem; letter-spacing: .08em; padding: .7rem; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.admin-table-card td { border-bottom: 1px solid #e3dee6; padding: .9rem .7rem; vertical-align: top; }
+.admin-table-card tbody tr:last-child td { border-bottom: 0; }
+.admin-table-card td > strong, .admin-table-card td > small { display: block; }
+.admin-table-card td small { color: #7c7281; font-size: .67rem; margin-top: .22rem; }
+.admin-role-list { display: flex; flex-wrap: wrap; gap: .35rem; }
+.admin-role-list span { background: #eee8f1; border-radius: 999px; color: #533d60; font-size: .63rem; font-weight: 700; padding: .28rem .5rem; white-space: nowrap; }
+.admin-status, .admin-security-state { background: #ece8ee; border-radius: 999px; color: #584e5e; display: inline-block; font-size: .65rem; font-weight: 700; padding: .3rem .55rem; white-space: nowrap; }
+.admin-status-active { background: #dcefe2; color: #28573a; }
+.admin-status-invited { background: #fff0c7; color: #715316; }
+.admin-status-suspended, .admin-status-disabled { background: #f7ded9; color: #7b2d25; }
+.admin-muted { color: #817886; }
+.admin-empty { color: #766d7b; font-family: var(--ui); font-size: .8rem; margin: 0; padding: 1.25rem 0 .25rem; }
+
+@media (max-width: 900px) {
+  .admin-metrics { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 620px) {
+  .admin-toolbar, .admin-section-heading { align-items: flex-start; flex-direction: column; }
+  .admin-metrics { grid-template-columns: 1fr; }
+  .admin-metrics article { min-height: 6.5rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }

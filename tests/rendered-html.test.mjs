@@ -101,3 +101,14 @@ test("server-renders the protected people directory shell", async () => {
   assert.match(html, /Find customer contact records and their active household relationships/i);
   assert.match(html, /Loading protected people records/i);
 });
+
+test("server-renders the protected administration overview shell", async () => {
+  const response = await render("/staff/admin");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>Administration Overview \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Review staff-account status, role assignments, and recent privileged activity/i);
+  assert.match(html, /Loading protected administration records/i);
+});
