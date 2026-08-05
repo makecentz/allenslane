@@ -14,6 +14,7 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
 - Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
 - Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
+- Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation remains pending
 - Tara Harrison Turner accepted the separate Supabase organization Administrator invitation, completing the backup-owner continuity gate
 - Production Auth/Resend configuration and remaining write-capable operational modules pending
 
@@ -64,6 +65,7 @@ npm run supabase:stop
 - `docs/phase-2/architecture.md` — components, data schemas, and trust boundaries
 - `docs/phase-2/deployment-runbook.md` — live `alanedb` deployment and bootstrap sequence
 - `docs/phase-2/manual-cutover-plan.md` — no-export cutover and reconciliation process
+- `docs/phase-2/transactional-email-runbook.md` — Resend DNS, SMTP, templates, staff invitation flow, and verification checklist
 
 ## Production rules
 

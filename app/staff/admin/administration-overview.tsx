@@ -104,6 +104,11 @@ export function AdministrationOverview() {
   const [activationEmail, setActivationEmail] = useState("");
   const [activationRole, setActivationRole] = useState<string>("registrar");
   const [activationReason, setActivationReason] = useState("");
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<string>("registrar");
+  const [inviteReason, setInviteReason] = useState("");
   const [roleSelections, setRoleSelections] = useState<Record<string, string>>({});
   const [statusSelections, setStatusSelections] = useState<Record<string, string>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
@@ -236,6 +241,42 @@ export function AdministrationOverview() {
     }
   }
 
+  async function inviteStaff(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusyAction("invite");
+    setActionError("");
+    setActionNotice("");
+    try {
+      const { data, error: inviteError } = await getSupabaseBrowserClient().functions.invoke("invite-staff", {
+        body: {
+          firstName: inviteFirstName,
+          lastName: inviteLastName,
+          email: inviteEmail,
+          role: inviteRole,
+          reason: inviteReason,
+        },
+      });
+      if (inviteError) {
+        const context = (inviteError as { context?: Response }).context;
+        if (context) {
+          const payload = await context.clone().json().catch(() => null) as { error?: string } | null;
+          if (payload?.error) throw new Error(payload.error);
+        }
+        throw inviteError;
+      }
+      await refreshRecords();
+      setActionNotice(typeof data?.message === "string" ? data.message : `Invitation sent to ${inviteEmail}.`);
+      setInviteFirstName("");
+      setInviteLastName("");
+      setInviteEmail("");
+      setInviteReason("");
+    } catch (inviteError) {
+      setActionError(errorMessage(inviteError));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
   async function changeRole(authUserId: string, role: string, grantRole: boolean) {
     const reason = reasons[authUserId] ?? "";
     await runAction(
@@ -307,10 +348,28 @@ export function AdministrationOverview() {
       {canManageStaff && (
         <section className="admin-panel admin-activation-card">
           <div className="admin-section-heading">
+            <div><p className="eyebrow">Transactional Email</p><h3>Invite a new staff member</h3></div>
+            <span>Invitation + initial access</span>
+          </div>
+          <p className="admin-helper">The recipient will choose a password from the invitation link and must enroll an authenticator app before opening staff tools.</p>
+          <form className="admin-invitation-form" onSubmit={inviteStaff}>
+            <label>First name<input required value={inviteFirstName} onChange={(event) => setInviteFirstName(event.target.value)} /></label>
+            <label>Last name<input required value={inviteLastName} onChange={(event) => setInviteLastName(event.target.value)} /></label>
+            <label>Email address<input type="email" required value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} placeholder="name@allenslane.org" /></label>
+            <label>Initial role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value)}>{roleOptions.map((role) => <option key={role} value={role}>{label(role)}</option>)}</select></label>
+            <label className="admin-reason-field">Audit reason<input required minLength={10} value={inviteReason} onChange={(event) => setInviteReason(event.target.value)} placeholder="At least 10 characters" /></label>
+            <button className="dark-button" type="submit" disabled={busyAction !== ""}>{busyAction === "invite" ? "Sending…" : "Send staff invitation"}</button>
+          </form>
+        </section>
+      )}
+
+      {canManageStaff && (
+        <section className="admin-panel admin-activation-card">
+          <div className="admin-section-heading">
             <div><p className="eyebrow">Staff Management</p><h3>Activate an existing account</h3></div>
             <span>Account must already be registered</span>
           </div>
-          <p className="admin-helper">Use this after the person creates an Allens Lane customer account. Email invitations will be added when transactional email is configured.</p>
+          <p className="admin-helper">Use this when the person already has an Allens Lane customer account and does not need a new invitation.</p>
           <form className="admin-activation-form" onSubmit={activateStaff}>
             <label>Email address<input type="email" required value={activationEmail} onChange={(event) => setActivationEmail(event.target.value)} placeholder="name@allenslane.org" /></label>
             <label>Initial role<select value={activationRole} onChange={(event) => setActivationRole(event.target.value)}>{roleOptions.map((role) => <option key={role} value={role}>{label(role)}</option>)}</select></label>

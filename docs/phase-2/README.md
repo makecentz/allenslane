@@ -28,6 +28,7 @@ The public frontend retains its established layout. Customer and staff account s
 - Read-only Finance overview for authorized staff to monitor orders, payments, paper-check refunds, and reconciliation status
 - Read-only People & Households directory for authorized staff, with contact search and explicit exclusion of sensitive participant details
 - Controlled Administration & Audit workspace for MFA-verified authorized staff to activate existing accounts, grant or revoke roles, change staff status, and review privileged events
+- Protected staff-invitation Edge Function with verified JWT, exact-origin CORS, MFA and permission checks, Auth invitation delivery, and guarded role activation
 - Initial staff bootstrap function restricted to database administration
 - Manual cutover CSV templates and reconciliation controls
 - Local reset, lint, and security tests
@@ -57,6 +58,9 @@ The public frontend retains its established layout. Customer and staff account s
 - `architecture.md` — component and trust-boundary design
 - `deployment-runbook.md` — live project creation, bootstrap, verification, and rollback sequence
 - `manual-cutover-plan.md` — no-export data preparation and reconciliation workflow
+- `supabase/functions/invite-staff/index.ts` — protected staff invitation orchestration
+- `supabase/templates/` — branded invitation, account-confirmation, and password-recovery email templates
+- `transactional-email-runbook.md` — Resend, Namecheap DNS, hosted SMTP, templates, and delivery verification
 
 ## Validation completed
 
@@ -68,6 +72,7 @@ The public frontend retains its established layout. Customer and staff account s
 6. Security assertions accepted a Finance-approver refund and payment void and confirmed financial audit events.
 7. The fifth hardening migration was applied transactionally to the empty live project and verified with Supabase advisors and direct catalog checks: all public tables use RLS, anonymous grants are read-only on ten catalog/content tables, anonymous RPC execution is disabled, and all foreign keys have covering indexes.
 8. The sixth staff-access migration was syntax-checked and behavior-tested in rollback-only live transactions before deployment. Verification confirmed that direct authenticated writes are revoked, anonymous RPC execution is denied, MFA-backed Staff Management is required, Finance escalation is rejected without Finance Approver authority, status changes and role changes are audited, and last-administrator recovery protections remain active.
+9. The `invite-staff` Edge Function was deployed with JWT verification enabled. Verification confirmed the exact production-origin CORS preflight returns `204` and unauthenticated POST requests return `401` without executing an invitation.
 
 ## Live-project gate
 

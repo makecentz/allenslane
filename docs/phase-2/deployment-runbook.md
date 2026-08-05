@@ -14,14 +14,16 @@
 - Enable email/password sign-up.
 - Require email confirmation.
 - Require at least 12 characters and upper/lowercase letters plus digits.
+- Completed August 5, 2026: the hosted Email provider enforces a 12-character minimum, upper/lowercase letters plus digits, and secure password changes.
+- Leaked-password protection requires upgrading the current Free project to Pro or above; enable it immediately after the production-plan upgrade.
 - Enable authenticator-app/TOTP enrollment and verification.
 - Enforce MFA for Supabase organization members when the plan supports it.
 - The application requires `aal2` for all staff authorization.
 - Configure production site URL and an exact allowlist of HTTPS redirect URLs.
 - Temporary production Site URL configured on August 5, 2026: `https://allens-lane-art-center-clone.ecomexperts.chatgpt.site/`.
-- Temporary allowed redirects: the Site URL root, `/account?confirmed=1`, and `/account?recovery=1` on that host.
+- Temporary allowed redirects: the Site URL root, `/account?confirmed=1`, `/account?recovery=1`, and `/account?invite=1` on that host.
 - Keep `http://localhost:3000/account` only for local Auth testing. Add `https://allenslane.org/account` when DNS cutover is approved, then remove the temporary host after the final domain is verified.
-- Configure Resend custom SMTP and branded verification/password-reset templates.
+- Configure Resend custom SMTP and branded verification/password-reset templates. Follow `transactional-email-runbook.md` for Namecheap DNS, sender-domain verification, the protected staff invitation flow, and delivery testing.
 - Add rate limiting and bot protection before public registration opens.
 
 ## 3. Link and validate without production data

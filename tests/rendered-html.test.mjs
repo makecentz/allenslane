@@ -58,6 +58,7 @@ test("keeps public pages free of ChatGPT sign-in and starter preview artifacts",
 
 test("server-renders the customer account route without gating public pages", async () => {
   const response = await render("/account");
+  const authPanel = await readFile(new URL("../app/account/auth-panel.tsx", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -66,6 +67,8 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(html, /Customer portal/i);
   assert.match(html, /Manage your household and prepare for registration/i);
   assert.match(html, /Loading your account/i);
+  assert.match(authPanel, /Create your staff password/i);
+  assert.match(authPanel, /parameters\.has\("invite"\)/i);
 });
 
 test("server-renders the protected staff portal shell", async () => {
@@ -104,6 +107,7 @@ test("server-renders the protected people directory shell", async () => {
 
 test("server-renders the protected administration overview shell", async () => {
   const response = await render("/staff/admin");
+  const administration = await readFile(new URL("../app/staff/admin/administration-overview.tsx", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -111,4 +115,6 @@ test("server-renders the protected administration overview shell", async () => {
   assert.match(html, /<title>Administration Overview \| Allens Lane Art Center<\/title>/i);
   assert.match(html, /Manage staff-account status and role assignments with MFA, approval safeguards, and a complete audit trail/i);
   assert.match(html, /Loading protected administration records/i);
+  assert.match(administration, /functions\.invoke\("invite-staff"/i);
+  assert.match(administration, /Send staff invitation/i);
 });

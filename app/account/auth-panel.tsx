@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 
-type Mode = "sign-in" | "sign-up" | "forgot" | "recovery";
+type Mode = "sign-in" | "sign-up" | "forgot" | "recovery" | "invite";
 type Profile = { first_name: string; last_name: string; preferred_name: string | null };
 
 function messageFrom(error: unknown) {
@@ -33,7 +33,9 @@ export function AuthPanel() {
 
     void supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
-      if (new URLSearchParams(window.location.search).has("recovery")) setMode("recovery");
+      const parameters = new URLSearchParams(window.location.search);
+      if (parameters.has("invite")) setMode("invite");
+      else if (parameters.has("recovery")) setMode("recovery");
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
@@ -199,7 +201,7 @@ export function AuthPanel() {
     const { error: updateError } = await getSupabaseBrowserClient().auth.updateUser({ password });
     if (updateError) setError(updateError.message);
     else {
-      setNotice("Your password has been updated.");
+      setNotice(mode === "invite" ? "Your staff password is ready. Continue to the staff portal to enroll your authenticator app." : "Your password has been updated.");
       setMode("sign-in");
     }
     setSubmitting(false);
@@ -223,7 +225,7 @@ export function AuthPanel() {
     return <div className="auth-card auth-loading" aria-live="polite">Loading your account…</div>;
   }
 
-  if (user && mode !== "recovery") {
+  if (user && mode !== "recovery" && mode !== "invite") {
     const displayName = profile?.preferred_name || profile?.first_name || user.email?.split("@")[0] || "there";
     return (
       <section className="auth-card account-summary">
@@ -295,6 +297,16 @@ export function AuthPanel() {
           <label>New password<input type="password" name="password" autoComplete="new-password" minLength={12} required /></label>
           <label>Confirm new password<input type="password" name="password_confirmation" autoComplete="new-password" minLength={12} required /></label>
           <button className="dark-button" type="submit" disabled={submitting}>{submitting ? "Updating…" : "Update password"}</button>
+        </form>
+      )}
+
+      {mode === "invite" && (
+        <form className="auth-form" onSubmit={updatePassword}>
+          <h2>Create your staff password</h2>
+          <p>Choose a secure password to accept your invitation. Staff access will also require an authenticator app.</p>
+          <label>New password<input type="password" name="password" autoComplete="new-password" minLength={12} required /></label>
+          <label>Confirm new password<input type="password" name="password_confirmation" autoComplete="new-password" minLength={12} required /></label>
+          <button className="dark-button" type="submit" disabled={submitting}>{submitting ? "Saving…" : "Create password"}</button>
         </form>
       )}
 
