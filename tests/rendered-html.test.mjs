@@ -66,3 +66,15 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(html, /Manage your household and prepare for registration/i);
   assert.match(html, /Loading your account/i);
 });
+
+test("server-renders the protected staff portal shell", async () => {
+  const response = await render("/staff");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>Staff Portal \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Secure access for programs, registrations, people, publishing, finance, and reporting/i);
+  assert.match(html, /Staff access requires two steps/i);
+  assert.match(html, /Checking secure staff access/i);
+});

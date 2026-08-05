@@ -7,7 +7,7 @@ Prepared: August 5, 2026
 
 Phase 2 establishes the clean operational data model for `alanedb` without relying on an unavailable Canvas export. The migrations are repeatable, reset successfully from an empty local Supabase database, pass Supabase database linting, and pass executable security assertions.
 
-The existing public frontend remains unchanged. The production frontend will connect to Supabase only after the organization-owned project, secrets, redirects, SMTP, and hosting path are configured.
+The public frontend retains its established layout. Customer and staff account shells now connect to the organization-owned Supabase project, while registrations, payments, and staff operational modules remain closed until their release gates are complete.
 
 ## Implemented
 
@@ -24,6 +24,7 @@ The existing public frontend remains unchanged. The production frontend will con
 - A non-API `migration` schema for manual cutover and any future legacy export
 - Public and private Supabase Storage buckets with staff access policies
 - Customer onboarding RPC that creates one retry-safe primary household
+- Customer account shell plus a staff portal that requires an active staff record and TOTP-backed `aal2` session
 - Initial staff bootstrap function restricted to database administration
 - Manual cutover CSV templates and reconciliation controls
 - Local reset, lint, and security tests

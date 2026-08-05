@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ReactNode, useEffect, useState } from "react";
 
 const mainNav = [
@@ -77,9 +78,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <a className="skip-link" href="#content">Skip to content</a>
       <header className={`site-header ${compact ? "compact" : ""}`}>
         <div className="header-inner container-wide">
-          <a className="brand" href="/" aria-label="Allens Lane Art Center home">
+          <Link className="brand" href="/" aria-label="Allens Lane Art Center home">
             <img src="/images/logo.png" alt="Allens Lane Art Center" />
-          </a>
+          </Link>
           <div className="desktop-navigation">
             <NavList items={secondaryNav} secondary />
             <NavList items={mainNav} />
@@ -133,8 +134,9 @@ export function SiteShell({ children }: { children: ReactNode }) {
         <div className="container-wide footer-grid">
           <div>
             <nav className="footer-links">
-              <a href="/blog/">Blog</a><a href="/in-the-news/">News</a>
+              <Link href="/blog/">Blog</Link><Link href="/in-the-news/">News</Link>
               <a href="https://canvas.allenslane.org/">Donate</a><a href="https://canvas.allenslane.org/">Shop</a>
+              <Link href="/staff">Staff Login</Link>
             </nav>
             <div className="footer-details">
               <p><strong>Location</strong><br />601 W Allens Lane<br />Philadelphia, PA 19119</p>
