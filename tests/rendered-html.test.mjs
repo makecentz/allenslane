@@ -54,3 +54,15 @@ test("keeps public pages free of ChatGPT sign-in and starter preview artifacts",
   await access(new URL("../public/og.png", import.meta.url));
   await assert.rejects(access(new URL("../app/_sites-preview", import.meta.url)));
 });
+
+test("server-renders the customer account route without gating public pages", async () => {
+  const response = await render("/account");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>My Account \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Customer portal/i);
+  assert.match(html, /Manage your household and prepare for registration/i);
+  assert.match(html, /Loading your account/i);
+});

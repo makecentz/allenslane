@@ -42,10 +42,11 @@ The existing public frontend remains unchanged. The production frontend will con
 ## Files
 
 - `supabase/config.toml` — local Auth, Storage, and database configuration
-- `supabase/migrations/20260805090000_core_identity_access.sql` — identity, roles, audit, and cutover staging
-- `supabase/migrations/20260805091000_programs_commerce.sql` — operational, commerce, giving, event, and content tables
-- `supabase/migrations/20260805092000_security_audit_rls.sql` — permissions, triggers, RLS, MFA, audit, refunds, and voids
-- `supabase/migrations/20260805093000_auth_onboarding_storage.sql` — Auth trigger, customer onboarding, first-staff bootstrap, and Storage policies
+- `supabase/migrations/20260805163637_core_identity_access.sql` — identity, roles, audit, and cutover staging
+- `supabase/migrations/20260805163647_programs_commerce.sql` — operational, commerce, giving, event, and content tables
+- `supabase/migrations/20260805163649_security_audit_rls.sql` — permissions, triggers, RLS, MFA, audit, refunds, and voids
+- `supabase/migrations/20260805163650_auth_onboarding_storage.sql` — Auth trigger, customer onboarding, first-staff bootstrap, and Storage policies
+- `supabase/migrations/20260805163945_harden_privileges_and_foreign_keys.sql` — least-privilege Data API grants and foreign-key indexes
 - `supabase/tests/security.sql` — executable household, MFA, Finance, and audit assertions
 - `supabase/cutover-templates/` — staff-prepared manual cutover CSVs
 - `architecture.md` — component and trust-boundary design
@@ -54,13 +55,14 @@ The existing public frontend remains unchanged. The production frontend will con
 
 ## Validation completed
 
-1. A full `supabase db reset` recreated the database and applied every migration and seed in order.
-2. `supabase db lint --level warning` returned no schema errors.
+1. A full `supabase db reset` recreated the database and applied the four foundation migrations and seed in order.
+2. `supabase db lint --level warning` returned no schema errors for the foundation schema.
 3. Security assertions proved customer household isolation.
 4. Security assertions proved staff-wide access is denied at `aal1` and granted only at `aal2` when the role contains the required permission.
 5. Security assertions rejected a non-Finance refund approval.
 6. Security assertions accepted a Finance-approver refund and payment void and confirmed financial audit events.
+7. The fifth hardening migration was applied transactionally to the empty live project and verified with Supabase advisors and direct catalog checks: all public tables use RLS, anonymous grants are read-only on ten catalog/content tables, anonymous RPC execution is disabled, and all foreign keys have covering indexes.
 
 ## Live-project gate
 
-Do not push these migrations until the production Supabase project is created inside the `allenslane` organization in East US (North Virginia), Gerrell Jones has a verified Auth account, a second organization administrator is named, and production secrets are available through the approved host rather than committed files.
+The five migrations are deployed to the production `alanedb` project in East US (North Virginia). Do not enable customer or staff traffic until Gerrell Jones has a verified Auth account, a second organization administrator is named, Auth/SMTP settings are production-ready, and server secrets are stored through the approved host rather than committed files.

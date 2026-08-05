@@ -8,7 +8,9 @@ This repository contains the public Allens Lane Art Center website clone and the
 - ChatGPT sign-in removed; public pages open directly
 - Phase 1 requirements, permissions, migration, retention, and integration decisions documented in `docs/phase-1/`
 - Phase 2 Supabase schema, RLS, staff MFA enforcement, audit trail, Storage policies, manual cutover boundary, and security assertions implemented in `supabase/`
-- Live Supabase project connection and customer/staff application screens pending
+- Live `alanedb` Supabase project connected; five production migrations deployed and verified
+- Customer email/password sign-in, sign-up, recovery, onboarding, and account shell implemented at `/account`
+- Staff application screens and production Auth/Resend configuration pending
 
 ## Local frontend
 

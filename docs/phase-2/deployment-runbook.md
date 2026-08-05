@@ -18,6 +18,9 @@
 - Enforce MFA for Supabase organization members when the plan supports it.
 - The application requires `aal2` for all staff authorization.
 - Configure production site URL and an exact allowlist of HTTPS redirect URLs.
+- Temporary production Site URL configured on August 5, 2026: `https://allens-lane-art-center-clone.ecomexperts.chatgpt.site/`.
+- Temporary allowed redirects: the Site URL root, `/account?confirmed=1`, and `/account?recovery=1` on that host.
+- Keep `http://localhost:3000/account` only for local Auth testing. Add `https://allenslane.org/account` when DNS cutover is approved, then remove the temporary host after the final domain is verified.
 - Configure Resend custom SMTP and branded verification/password-reset templates.
 - Add rate limiting and bot protection before public registration opens.
 
@@ -39,7 +42,7 @@ Review the dry-run output before applying migrations. Do not use production cust
 npx.cmd supabase db push
 ```
 
-Confirm all four migration versions are recorded. Verify RLS, Storage buckets, Auth settings, and exposed schemas before creating staff access.
+Confirm all five migration versions are recorded. Verify RLS, least-privilege Data API grants, foreign-key indexes, Storage buckets, Auth settings, and exposed schemas before creating staff access.
 
 ## 5. Bootstrap Gerrell Jones
 

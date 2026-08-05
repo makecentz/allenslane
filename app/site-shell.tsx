@@ -25,6 +25,7 @@ const secondaryNav = [
   ] },
   { label: "Rentals", href: "/about/rentals/", children: [["Birthday Parties", "/about/rentals/birthday-parties/"]] },
   { label: "Events", href: "https://canvas.allenslane.org/" },
+  { label: "My Account", href: "/account" },
   { label: "Contact", href: "/contact/" },
   { label: "Support", href: "/support/", children: [
     ["Memberships", "/about/membership/"], ["Volunteer", "/support/volunteer/"],
