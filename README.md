@@ -1,6 +1,6 @@
-# Allens Lane Art Center Platform
+# Allens L Platform
 
-This repository contains the public Allens Lane Art Center website clone and the Supabase foundation for the future customer and staff operations platform.
+This repository contains the public Allens L website clone and the Supabase foundation for the future customer and staff operations platform.
 
 ## Current status
 
