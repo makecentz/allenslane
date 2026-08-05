@@ -79,3 +79,14 @@ test("server-renders the protected staff portal shell", async () => {
   assert.match(html, /Staff access requires two steps/i);
   assert.match(html, /Checking secure staff access/i);
 });
+
+test("server-renders the protected finance overview shell", async () => {
+  const response = await render("/staff/finance");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>Finance Overview \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Read-only visibility into orders, payments, paper-check refunds, and reconciliation status/i);
+  assert.match(html, /Loading protected finance records/i);
+});

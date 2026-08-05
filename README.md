@@ -11,7 +11,8 @@ This repository contains the public Allens Lane Art Center website clone and the
 - Live `alanedb` Supabase project connected; five production migrations deployed and verified
 - Customer email/password sign-in, sign-up, recovery, onboarding, and account shell implemented at `/account`
 - Staff sign-in, mandatory TOTP enrollment/challenge, and permission-aware portal shell implemented at `/staff`
-- Production Auth/Resend configuration and operational staff modules pending
+- Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
+- Production Auth/Resend configuration and write-capable operational modules pending
 
 ## Local frontend
 

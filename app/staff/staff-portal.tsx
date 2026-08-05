@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
@@ -15,7 +16,7 @@ const modules = [
   { name: "People & households", description: "Customer profiles, relationships, and support records.", prefixes: ["people.", "minors."] },
   { name: "Programs & registration", description: "Catalog, classes, rosters, registrations, and waitlists.", prefixes: ["catalog.", "registrations.", "rosters."] },
   { name: "Content & events", description: "Public content, publishing, events, and retained ticketing links.", prefixes: ["content.", "events."] },
-  { name: "Finance & development", description: "Payments, reconciliation, memberships, gifts, and reporting.", prefixes: ["finance.", "development.", "reports.", "commerce."] },
+  { name: "Finance & development", description: "Payments, reconciliation, memberships, gifts, and reporting.", prefixes: ["finance.", "development.", "reports.", "commerce."], href: "/staff/finance" },
   { name: "Administration", description: "Staff access, audit history, and controlled migration tools.", prefixes: ["staff.", "audit.", "migration."] },
 ];
 
@@ -353,7 +354,7 @@ export function StaffPortal() {
             <span className="module-status">Permission enabled</span>
             <h3>{module.name}</h3>
             <p>{module.description}</p>
-            <small>Operational screens will be activated module by module.</small>
+            {module.href ? <Link className="module-link" href={module.href}>Open finance overview</Link> : <small>Operational screens will be activated module by module.</small>}
           </article>
         ))}
       </div>
