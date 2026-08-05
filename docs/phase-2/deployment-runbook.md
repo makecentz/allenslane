@@ -23,7 +23,7 @@
 - Temporary production Site URL configured on August 5, 2026: `https://allens-lane-art-center-clone.ecomexperts.chatgpt.site/`.
 - Temporary allowed redirects: the Site URL root, `/account?confirmed=1`, `/account?recovery=1`, and `/account?invite=1` on that host.
 - Keep `http://localhost:3000/account` only for local Auth testing. Add `https://allenslane.org/account` when DNS cutover is approved, then remove the temporary host after the final domain is verified.
-- Configure Resend custom SMTP and branded verification/password-reset templates. Follow `transactional-email-runbook.md` for Namecheap DNS, sender-domain verification, the protected staff invitation flow, and delivery testing.
+- During temporary-domain development, retain the current Supabase email configuration for controlled testing. Resend, custom SMTP, branded hosted templates, and email-domain DNS are deliberately deferred to the final-domain launch step in section 9.
 - Add rate limiting and bot protection before public registration opens.
 
 ## 3. Link and validate without production data
@@ -94,3 +94,14 @@ Create hosted secrets without committing their values:
 - Keep Canvas writable during the agreed parallel window.
 - At cutover, stop legacy writes, perform a final manual reconciliation, then mark Canvas read-only.
 - If critical controls fail, stop new writes in the new platform and return operations to Canvas while preserving the failed batch and audit evidence.
+
+## 9. Final-domain and transactional-email launch
+
+Complete this only after the application, operational modules, and permanent public domain are approved:
+
+- Point the permanent domain to the approved production site and add its exact Auth redirect URLs.
+- Create or select the organization-owned Resend account.
+- Verify the approved Allens Lane sending subdomain through Namecheap DNS without disturbing Mailchimp records.
+- Configure Resend custom SMTP in Supabase and apply the branded hosted Auth templates.
+- Run the delivery, invitation, confirmation, recovery, SPF, DKIM, spam-placement, and redirect checks in `transactional-email-runbook.md`.
+- Remove the temporary host from Supabase Auth only after permanent-domain testing succeeds.

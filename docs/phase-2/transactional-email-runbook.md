@@ -1,7 +1,13 @@
 # Transactional Email and Staff Invitations
 
-Status: Invitation workflow deployed; Resend domain and SMTP activation pending
+Status: Invitation workflow deployed; Resend domain and SMTP activation intentionally deferred to the final-domain launch step
 Prepared: August 5, 2026
+
+## Scheduling decision
+
+The application will continue to use its temporary `ecomexperts.chatgpt.site` URL while frontend and operational modules are built and tested. Do not configure Resend, publish email DNS records, or activate custom SMTP during this temporary-domain stage. Complete the production setup below only after the permanent application domain is approved and ready for launch.
+
+This deferral does not block continued application development. Use only approved test accounts and the current Supabase email service for limited invitation testing until the final email configuration is complete.
 
 ## Implemented application flow
 
@@ -17,7 +23,7 @@ The Edge Function has `verify_jwt` enabled, uses an exact browser-origin allowli
 
 ## Resend production setup
 
-Allens Lane must create or select the organization-owned Resend account before production email is enabled.
+Allens Lane must create or select the organization-owned Resend account as the final launch task, before public transactional email is enabled.
 
 1. In Resend, add `allenslane.org` and copy the provided SPF and DKIM records.
 2. Add those records in Namecheap DNS without deleting the existing website or Mailchimp records.

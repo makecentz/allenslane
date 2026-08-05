@@ -13,10 +13,11 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Staff sign-in, mandatory TOTP enrollment/challenge, and permission-aware portal shell implemented at `/staff`
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
 - Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
+- Read-only Programs & Registration overview implemented at `/staff/programs` with role-scoped catalog, term, capacity, enrollment, and waitlist visibility
 - Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
-- Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation remains pending
+- Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation is intentionally deferred until final-domain launch
 - Tara Harrison Turner accepted the separate Supabase organization Administrator invitation, completing the backup-owner continuity gate
-- Production Auth/Resend configuration and remaining write-capable operational modules pending
+- Remaining write-capable operational modules are next; final-domain DNS and Resend configuration are reserved for the last launch step
 
 ## Local frontend
 

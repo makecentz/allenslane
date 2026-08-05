@@ -7,7 +7,7 @@
 | Canvas transition | Run Canvas in parallel temporarily; make it read-only after reconciled migration. | Approved |
 | Payment processing | Use Stripe. | Approved |
 | Accounting | Use QuickBooks Online. | Approved; integration method pending |
-| Transactional email | No current provider; recommend Resend for Supabase Auth and application email. | Recommended; account/domain approval pending |
+| Transactional email | Use Resend for Supabase Auth and application email, but configure it only after the permanent domain is ready. | Approved; deferred to final-domain launch |
 | Marketing email | Retain Mailchimp initially. | Approved |
 | Theater ticketing | Retain the external provider initially. | Approved |
 | Supabase ownership | Organization owner: `allenslane`; intended project: `alanedb`. | Approved; connection pending |
@@ -47,7 +47,7 @@ Priority meanings:
 | DEC-16 | P2 | Is public site search required in Release 1? | Defer unless content discovery testing shows a clear need |
 | DEC-17 | P2 | Is attendance tracking required? | Include schema support; defer UI unless operationally required |
 | DEC-18 | P2 | Are gift certificates, merchandise, rentals, and point-of-sale required? | Scope only after active balances and workflows are audited |
-| DEC-19 | P1 | Which provider sends authentication and operational transactional email? | Recommend Resend with separate authenticated sending subdomains; approval pending |
+| DEC-19 | P1 | Which provider sends authentication and operational transactional email? | **Resolved:** use Resend with separate authenticated sending subdomains; defer account, DNS, and SMTP activation to the final-domain launch step |
 | DEC-20 | P1 | Who controls public DNS and can publish email-authentication records? | **Resolved:** Namecheap hosts DNS. Confirm the individual who can approve and apply DNS changes |
 | DEC-21 | P1 | Who is the primary technical/Supabase contact? | **Resolved:** Gerrell Jones (`ecomexpertsllc@gmail.com`) |
 | DEC-22 | P0 | Is staff MFA required? | **Resolved:** mandatory for all staff. Enforce `aal2` for staff application access and enable organization-level MFA enforcement when the Supabase plan supports it |
@@ -61,7 +61,7 @@ Supabase region reference: https://supabase.com/docs/guides/platform/regions
 
 1. Name the operational product owner; Gerrell Jones is recorded as both Finance approver and technical/Supabase contact.
 2. Add a second organization administrator for production Supabase continuity.
-3. Approve Resend and identify who controls DNS for `allenslane.org`.
+3. At final-domain launch, create the organization-owned Resend account and have the Namecheap DNS owner publish the approved email-authentication records.
 4. Choose the initial QuickBooks Online connection method: reviewed reports/CSV, API, or both.
 5. Approve the manual cutover worksheet for active registrations, waitlists, balances, credits, memberships, pledges, and payment plans.
 6. Approve the detailed role matrix, financial thresholds, retention schedule, and reconciliation process.

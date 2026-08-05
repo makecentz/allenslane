@@ -27,6 +27,7 @@ The public frontend retains its established layout. Customer and staff account s
 - Customer account shell plus a staff portal that requires an active staff record and TOTP-backed `aal2` session
 - Read-only Finance overview for authorized staff to monitor orders, payments, paper-check refunds, and reconciliation status
 - Read-only People & Households directory for authorized staff, with contact search and explicit exclusion of sensitive participant details
+- Read-only Programs & Registration overview for authorized staff, with role-scoped catalog, term, schedule, capacity, enrollment, and waitlist summaries and no participant details
 - Controlled Administration & Audit workspace for MFA-verified authorized staff to activate existing accounts, grant or revoke roles, change staff status, and review privileged events
 - Protected staff-invitation Edge Function with verified JWT, exact-origin CORS, MFA and permission checks, Auth invitation delivery, and guarded role activation
 - Initial staff bootstrap function restricted to database administration
@@ -76,4 +77,4 @@ The public frontend retains its established layout. Customer and staff account s
 
 ## Live-project gate
 
-The six migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones has a verified Auth account, active System Administrator and Finance Approver roles, and a verified TOTP factor. Tara Harrison Turner (`tara@allenslane.org`) accepted the separate Supabase organization Administrator invitation on August 5, 2026, completing the backup-owner continuity gate; this organization-level role does not grant application or Finance access. Do not enable transactional traffic until Auth/SMTP settings are production-ready and server secrets are stored through the approved host rather than committed files.
+The six migrations are deployed to the production `alanedb` project in East US (North Virginia). Gerrell Jones has a verified Auth account, active System Administrator and Finance Approver roles, and a verified TOTP factor. Tara Harrison Turner (`tara@allenslane.org`) accepted the separate Supabase organization Administrator invitation on August 5, 2026, completing the backup-owner continuity gate; this organization-level role does not grant application or Finance access. Continue building and testing on the temporary domain with approved test accounts. Resend, custom SMTP, email DNS, and branded hosted templates are the final-domain launch task and do not block the remaining application modules. Do not enable public transactional traffic until that final setup is complete and server secrets are stored through the approved host rather than committed files.
