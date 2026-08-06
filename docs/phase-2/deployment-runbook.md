@@ -61,7 +61,7 @@ select private.bootstrap_initial_staff(
 
 Completed August 5, 2026: the verified Auth account was activated with the `system_admin` and `finance_approver` roles. TOTP enrollment remains required before protected staff access.
 
-Gerrell enrolled application TOTP on August 5, 2026. Tara Harrison Turner accepted the separate Supabase organization Administrator invitation for recovery on August 5, 2026. On the same date, Gerrell and Tara were assigned all 12 application roles as super administrators through the audited staff-access workflow. Tara must still accept her application invitation and enroll TOTP before her staff permissions are usable. Enable dashboard-account MFA for both organization administrators.
+Gerrell enrolled application TOTP on August 5, 2026. Tara Harrison Turner accepted both the separate Supabase organization Administrator invitation for recovery and her application invitation. On the same date, Gerrell and Tara were assigned all 12 application roles as super administrators through the audited staff-access workflow. Tara must still enroll application TOTP before her staff permissions are usable. Enable dashboard-account MFA for both organization administrators.
 
 ## 6. Configure hosted secrets
 

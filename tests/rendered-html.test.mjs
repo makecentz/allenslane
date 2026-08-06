@@ -121,6 +121,8 @@ test("server-renders the protected programs and registration overview shell", as
 test("server-renders the protected content and events overview shell", async () => {
   const response = await render("/staff/content");
   const staffPortal = await readFile(new URL("../app/staff/staff-portal.tsx", import.meta.url), "utf8");
+  const editor = await readFile(new URL("../app/staff/content/content-event-editor.tsx", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../supabase/migrations/20260806131331_content_event_write_workflows.sql", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -129,6 +131,12 @@ test("server-renders the protected content and events overview shell", async () 
   assert.match(html, /Review editorial content, publication readiness, event schedules, and retained ticketing links/i);
   assert.match(html, /Loading protected content and event records/i);
   assert.match(staffPortal, /href: "\/staff\/content"/i);
+  assert.match(editor, /rpc\("save_content_item"/i);
+  assert.match(editor, /rpc\("save_event"/i);
+  assert.match(editor, /Operational reason/i);
+  assert.match(migration, /revoke insert, update, delete on public\.content_items from authenticated/i);
+  assert.match(migration, /Content Publisher permission is required/i);
+  assert.match(migration, /audit_content_items/i);
 });
 
 test("server-renders the protected administration overview shell", async () => {

@@ -3,25 +3,28 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
+import { ContentEventEditor } from "./content-event-editor";
 
 type ViewState = "loading" | "signed-out" | "mfa-required" | "denied" | "ready";
-type ContentItem = {
+export type ContentItem = {
   id: string;
   content_type: string;
   slug: string;
   title: string;
   summary: string | null;
+  body: Record<string, unknown>;
   status: string;
   hero_image_path: string | null;
   hero_image_alt: string | null;
   published_at: string | null;
   updated_at: string;
 };
-type EventRow = {
+export type EventRow = {
   id: string;
   slug: string;
   title: string;
   summary: string | null;
+  description: string | null;
   starts_at: string;
   ends_at: string | null;
   facility_id: string | null;
@@ -33,7 +36,7 @@ type EventRow = {
   published_at: string | null;
   updated_at: string;
 };
-type Facility = { id: string; name: string };
+export type Facility = { id: string; name: string };
 type EventSummary = EventRow & { facilityName: string };
 
 const allowedPermissions = new Set(["content.edit", "content.publish", "events.manage"]);
@@ -64,6 +67,8 @@ export function ContentEventsOverview() {
   const [contentType, setContentType] = useState("all");
   const [contentStatus, setContentStatus] = useState("all");
   const [eventStatus, setEventStatus] = useState("all");
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -129,10 +134,11 @@ export function ContentEventsOverview() {
         setView("denied");
         return;
       }
+      setPermissions(permissionRows?.map((row) => row.permission) ?? []);
 
       const [contentResult, eventResult, facilityResult] = await Promise.all([
-        supabase.from("content_items").select("id,content_type,slug,title,summary,status,hero_image_path,hero_image_alt,published_at,updated_at").order("updated_at", { ascending: false }).limit(250),
-        supabase.from("events").select("id,slug,title,summary,starts_at,ends_at,facility_id,external_ticket_url,capacity,image_path,image_alt,status,published_at,updated_at").order("starts_at", { ascending: true }).limit(250),
+        supabase.from("content_items").select("id,content_type,slug,title,summary,body,status,hero_image_path,hero_image_alt,published_at,updated_at").order("updated_at", { ascending: false }).limit(250),
+        supabase.from("events").select("id,slug,title,summary,description,starts_at,ends_at,facility_id,external_ticket_url,capacity,image_path,image_alt,status,published_at,updated_at").order("starts_at", { ascending: true }).limit(250),
         supabase.from("facilities").select("id,name").order("name").limit(100),
       ]);
 
@@ -152,7 +158,7 @@ export function ContentEventsOverview() {
 
     void loadContentAndEvents();
     return () => { active = false; };
-  }, []);
+  }, [refreshKey]);
 
   const eventSummaries = useMemo(() => {
     const facilityById = new Map(facilities.map((facility) => [facility.id, facility.name]));
@@ -210,8 +216,16 @@ export function ContentEventsOverview() {
       </section>
 
       <aside className="content-ops-readonly-note">
-        <strong>Read-only release view.</strong> Drafts remain protected by staff permissions. Editing, review approval, publishing, archiving, and event changes stay disabled until their audited workflow is complete.
+        <strong>Audited publishing is active.</strong> Every saved change requires an operational reason. Editors can prepare drafts and submit reviews; publishing and archiving remain restricted to Content Publishers, while Event Managers control event status.
       </aside>
+
+      <ContentEventEditor
+        content={content}
+        events={events}
+        facilities={facilities}
+        permissions={permissions}
+        onSaved={() => setRefreshKey((value) => value + 1)}
+      />
 
       <section className="content-ops-metrics" aria-label="Content and events summary">
         <article><span>Published items</span><strong>{publishedContent}</strong></article>

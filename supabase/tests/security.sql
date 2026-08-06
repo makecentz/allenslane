@@ -256,4 +256,154 @@ end $$;
 
 rollback;
 
+begin;
+
+insert into auth.users (
+  id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values
+  ('60000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'editor@example.test', 'not-used', now(), '{}', '{"first_name":"Test","last_name":"Editor"}', now(), now()),
+  ('60000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'publisher@example.test', 'not-used', now(), '{}', '{"first_name":"Test","last_name":"Publisher"}', now(), now()),
+  ('60000000-0000-4000-8000-000000000003', 'authenticated', 'authenticated', 'events@example.test', 'not-used', now(), '{}', '{"first_name":"Test","last_name":"Events"}', now(), now());
+
+insert into public.staff_accounts (auth_user_id, person_id, status)
+select auth_user_id, id, 'active' from public.people
+where auth_user_id in (
+  '60000000-0000-4000-8000-000000000001',
+  '60000000-0000-4000-8000-000000000002',
+  '60000000-0000-4000-8000-000000000003'
+);
+
+insert into public.user_roles (auth_user_id, role, reason) values
+  ('60000000-0000-4000-8000-000000000001', 'content_editor', 'Automated publishing workflow test'),
+  ('60000000-0000-4000-8000-000000000002', 'content_publisher', 'Automated publishing workflow test'),
+  ('60000000-0000-4000-8000-000000000003', 'events_manager', 'Automated event workflow test');
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"60000000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',
+  true
+);
+
+do $$
+begin
+  begin
+    insert into public.content_items (content_type, slug, title)
+    values ('article', 'direct-write-test', 'Direct write test');
+    raise exception 'Content editor bypassed the guarded publishing function';
+  exception
+    when insufficient_privilege then null;
+  end;
+end $$;
+
+select public.save_content_item(
+  null,
+  'article',
+  'workflow-test',
+  'Publishing workflow test',
+  'Draft summary',
+  '{"text":"Draft body"}'::jsonb,
+  null,
+  null,
+  'review',
+  'Submit automated draft for review'
+);
+
+do $$
+declare
+  target_id uuid;
+begin
+  select id into target_id from public.content_items where slug = 'workflow-test';
+  begin
+    perform public.save_content_item(
+      target_id,
+      'article',
+      'workflow-test',
+      'Publishing workflow test',
+      'Draft summary',
+      '{"text":"Draft body"}'::jsonb,
+      null,
+      null,
+      'published',
+      'Unauthorized automated publish attempt'
+    );
+    raise exception 'Content editor published without Publisher permission';
+  exception
+    when insufficient_privilege then null;
+  end;
+end $$;
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"60000000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal2"}',
+  true
+);
+
+select public.save_content_item(
+  (select id from public.content_items where slug = 'workflow-test'),
+  'article',
+  'workflow-test',
+  'Publishing workflow test',
+  'Approved summary',
+  '{"text":"Approved body"}'::jsonb,
+  null,
+  null,
+  'published',
+  'Approve automated content publication'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"60000000-0000-4000-8000-000000000003","role":"authenticated","aal":"aal2"}',
+  true
+);
+
+select public.save_event(
+  null,
+  'workflow-event',
+  'Publishing workflow event',
+  'Automated event summary',
+  'Automated event description',
+  now() + interval '7 days',
+  now() + interval '7 days 2 hours',
+  'America/New_York',
+  null,
+  'https://tickets.example.test/workflow-event',
+  25,
+  null,
+  null,
+  'published',
+  'Publish automated event workflow test'
+);
+
+reset role;
+
+do $$
+begin
+  if not exists (
+    select 1 from public.content_items
+    where slug = 'workflow-test' and status = 'published' and published_at is not null
+  ) then
+    raise exception 'Publisher workflow did not publish content';
+  end if;
+
+  if not exists (
+    select 1 from public.events
+    where slug = 'workflow-event' and status = 'published' and published_at is not null
+  ) then
+    raise exception 'Event workflow did not publish the event';
+  end if;
+
+  if (
+    select count(*) from public.audit_events
+    where entity_table in ('content_items', 'events')
+      and char_length(coalesce(reason, '')) >= 10
+  ) <> 3 then
+    raise exception 'Content and event audit events were not written with reasons';
+  end if;
+end $$;
+
+rollback;
+
 \echo 'Security assertions passed.'
