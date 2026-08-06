@@ -28,6 +28,7 @@ The public frontend retains its established layout. Customer and staff account s
 - Read-only Finance overview for authorized staff to monitor orders, payments, paper-check refunds, and reconciliation status
 - Read-only People & Households directory for authorized staff, with contact search and explicit exclusion of sensitive participant details
 - Audited Programs & Catalog workspace for authorized staff, with guarded program, term, facility, class, schedule, pricing, and capacity editing; publisher-only release controls; required operational reasons; and read-only enrollment/waitlist summaries
+- Public class catalog progressively loads only published/open/waitlist/closed records on `/classes`, preserves the cloned page when no records are available, and retains Canvas for checkout during the transition
 - Audited Content & Events workspace for authorized staff, with guarded draft/review editing, publisher-only publication and archiving, event management, required operational reasons, hero-media readiness, and validated HTTPS ticketing links
 - Controlled Administration & Audit workspace for MFA-verified authorized staff to activate existing accounts, grant or revoke roles, change staff status, and review privileged events
 - Protected staff-invitation Edge Function with verified JWT, exact-origin CORS, MFA and permission checks, Auth invitation delivery, and guarded role activation
@@ -77,6 +78,7 @@ The public frontend retains its established layout. Customer and staff account s
 9. The `invite-staff` Edge Function was deployed with JWT verification enabled. Verification confirmed the exact production-origin CORS preflight returns `204` and unauthenticated POST requests return `401` without executing an invitation.
 10. The seventh publishing-workflow migration was behavior-tested in a rollback-only live transaction before deployment. Verification confirmed direct browser writes are revoked, editor and publisher duties are separated, Event Management is MFA-backed, and accepted content/event mutations write append-only audit records with mandatory reasons.
 11. The eighth catalog-workflow migration was behavior-tested in a rollback-only live transaction before deployment. Verification confirmed direct browser writes are revoked, Catalog Managers can prepare operational records, Catalog Publishers control public program/class release, and all accepted catalog mutations write audit records with mandatory reasons.
+12. The public class catalog passed its production build and route test, and an `anon` role query confirmed the empty live catalog returns zero visible records without exposing drafts or protected operational data.
 
 ## Live-project gate
 

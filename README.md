@@ -14,6 +14,7 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
 - Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
 - Audited Programs & Catalog workspace implemented at `/staff/programs` with guarded program, term, facility, class, schedule, pricing, capacity, and publication management; registration and waitlist actions remain read-only
+- Public `/classes` catalog connected to RLS-filtered Supabase records with search, program filtering, responsive class cards, and an unchanged-content fallback while no published records exist
 - Audited Content & Events workspace implemented at `/staff/content` with role-scoped draft editing, publisher approval, event management, operational reasons, and protected external ticketing links
 - Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
 - Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation is intentionally deferred until final-domain launch

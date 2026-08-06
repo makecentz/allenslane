@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SiteShell } from "../site-shell";
+import { PublicClassCatalog } from "./public-class-catalog";
 
 type Section = { heading: string; body: string; bullets?: string[] };
 type PageData = {
@@ -147,7 +148,7 @@ const pages: Record<string, PageData> = {
   "classes": {
     title: "Classes",
     intro: "Studio art and creative learning for children, teens, and adults.",
-    sections: [{ heading: "Make Something New", body: "Explore ceramics, painting, drawing, printmaking, fibers, photography, mixed media, and more with experienced teaching artists." }, { heading: "Find Your Class", body: "Class schedules and registration are managed through the Allens Lane Canvas portal.", bullets: ["Adult classes", "Youth classes", "Workshops", "Open studios"] }],
+    sections: [{ heading: "Make Something New", body: "Explore ceramics, painting, drawing, printmaking, fibers, photography, mixed media, and more with experienced teaching artists." }, { heading: "Find Your Class", body: "Browse published classes below. Registration continues through the Allens Lane Canvas portal during the transition.", bullets: ["Adult classes", "Youth classes", "Workshops", "Open studios"] }],
   },
   "contact": {
     title: "Contact Us",
@@ -193,7 +194,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function InteriorPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
-  const page = getPage(slug.join("/"));
+  const path = slug.join("/");
+  const page = getPage(path);
 
   return (
     <SiteShell>
@@ -215,6 +217,8 @@ export default async function InteriorPage({ params }: { params: Promise<{ slug:
                   {section.bullets && <ul>{section.bullets.map((item) => <li key={item}>{item}</li>)}</ul>}
                 </section>
               ))}
+
+              {path === "classes" && <PublicClassCatalog />}
 
               {page.people && (
                 <div className="people-grid">

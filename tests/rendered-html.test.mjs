@@ -162,3 +162,20 @@ test("server-renders the protected administration overview shell", async () => {
   assert.match(administration, /functions\.invoke\("invite-staff"/i);
   assert.match(administration, /Send staff invitation/i);
 });
+
+test("keeps the public classes page available while progressively loading the published catalog", async () => {
+  const response = await render("/classes");
+  const catalog = await readFile(new URL("../app/[...slug]/public-class-catalog.tsx", import.meta.url), "utf8");
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+
+  const html = await response.text();
+  assert.match(html, /<title>Classes \| Allens Lane Art Center<\/title>/i);
+  assert.match(html, /Studio art and creative learning for children, teens, and adults/i);
+  assert.match(html, /Registration continues through the Allens Lane Canvas portal during the transition/i);
+  assert.match(catalog, /\.from\("classes"\)/i);
+  assert.match(catalog, /\.in\("status", publicStatuses\)/i);
+  assert.match(catalog, /\.from\("programs"\).*\.eq\("status", "published"\)/i);
+  assert.match(catalog, /if \(classes\.length === 0\) return null/i);
+  assert.doesNotMatch(catalog, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
+});
