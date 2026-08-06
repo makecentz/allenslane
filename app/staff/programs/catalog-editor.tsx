@@ -68,7 +68,7 @@ export function CatalogEditor({
   const selectedProgram = programs.find((item) => item.id === programForm.id);
   const programLocked = Boolean(selectedProgram && !canPublish && ["published", "archived"].includes(selectedProgram.status));
   const selectedClass = classes.find((item) => item.id === classForm.id);
-  const classLocked = Boolean(selectedClass && !canPublish && selectedClass.status === "archived");
+  const classLocked = Boolean(selectedClass && (selectedClass.checkout_mode === "external" || (!canPublish && selectedClass.status === "archived")));
   const classStatuses = canPublish
     ? ["draft", "published", "open", "waitlist", "closed", "canceled", "completed", "archived"]
     : selectedClass && selectedClass.status !== "draft"
@@ -270,7 +270,7 @@ export function CatalogEditor({
         <label><span>Timezone</span><select disabled={classLocked} value={classForm.timezone} onChange={(event) => setClassForm((form) => ({ ...form, timezone: event.target.value }))}><option value="America/New_York">Eastern Time · America/New_York</option></select></label>
         <label><span>Image path</span><input disabled={classLocked} value={classForm.imagePath} onChange={(event) => setClassForm((form) => ({ ...form, imagePath: event.target.value }))} /></label>
         <label className="catalog-editor-wide"><span>Image alt text</span><input disabled={classLocked} value={classForm.imageAlt} onChange={(event) => setClassForm((form) => ({ ...form, imageAlt: event.target.value }))} /></label>
-        {classLocked ? <p className="catalog-editor-lock catalog-editor-wide">A Catalog Publisher must change this archived class.</p> : <label className="catalog-editor-wide"><span>Operational reason</span><textarea required minLength={10} rows={2} value={classForm.reason} onChange={(event) => setClassForm((form) => ({ ...form, reason: event.target.value }))} /></label>}
+        {classLocked ? <p className="catalog-editor-lock catalog-editor-wide">{selectedClass?.checkout_mode === "external" ? <>This class is synchronized from Canvas and remains read-only here during parallel operations. {selectedClass.external_registration_url ? <a href={selectedClass.external_registration_url}>Open the Canvas record</a> : null}</> : "A Catalog Publisher must change this archived class."}</p> : <label className="catalog-editor-wide"><span>Operational reason</span><textarea required minLength={10} rows={2} value={classForm.reason} onChange={(event) => setClassForm((form) => ({ ...form, reason: event.target.value }))} /></label>}
         {!classLocked && <div className="catalog-editor-actions catalog-editor-wide"><button className="dark-button" disabled={saving || programs.length === 0 || terms.length === 0}>{saving ? "Saving..." : classForm.id ? "Save class" : "Create class"}</button><button className="text-button" type="button" onClick={() => setClassForm(emptyClass)}>Clear</button></div>}
       </form> : null}
 

@@ -183,7 +183,11 @@ test("server-renders the protected administration overview shell", async () => {
 
 test("keeps the public classes page available while progressively loading the published catalog", async () => {
   const response = await render("/classes");
-  const catalog = await readFile(new URL("../app/[...slug]/public-class-catalog.tsx", import.meta.url), "utf8");
+  const [catalog, importMigration, importData] = await Promise.all([
+    readFile(new URL("../app/[...slug]/public-class-catalog.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../supabase/migrations/20260806205734_import_canvas_class_catalog.sql", import.meta.url), "utf8"),
+    readFile(new URL("../data/imports/canvas-classes-2026-08-06.json", import.meta.url), "utf8"),
+  ]);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -197,6 +201,12 @@ test("keeps the public classes page available while progressively loading the pu
   assert.match(catalog, /if \(classes\.length === 0\) return null/i);
   assert.match(catalog, /rpc\("prepare_class_registration"/i);
   assert.match(catalog, /Register in Canvas/i);
+  assert.match(catalog, /external_registration_url/i);
+  assert.match(catalog, /source_schedule_text/i);
   assert.match(catalog, /Stripe is not active yet/i);
+  assert.equal(JSON.parse(importData).length, 56);
+  assert.match(importMigration, /checkout_mode text not null default 'internal'/i);
+  assert.match(importMigration, /classes_external_checkout_status_check/i);
+  assert.match(importMigration, /'art_center_canvas'/i);
   assert.doesNotMatch(catalog, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
 });

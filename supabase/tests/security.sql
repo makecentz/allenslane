@@ -407,6 +407,34 @@ end $$;
 
 rollback;
 
+-- Canvas-synchronized catalog records must never enter internal checkout.
+begin;
+
+insert into public.programs (id, code, name, status)
+values ('74000000-0000-4000-8000-000000000001', 'TEST-EXTERNAL', 'External Catalog Test', 'published');
+insert into public.terms (id, code, name, starts_on, ends_on, status)
+values ('74100000-0000-4000-8000-000000000001', 'TEST-EXTERNAL-TERM', 'External Catalog Term', current_date, current_date + 30, 'open');
+
+do $$
+begin
+  begin
+    insert into public.classes (
+      program_id, term_id, code, slug, title, capacity, status,
+      checkout_mode, external_registration_url, source_capacity_known
+    ) values (
+      '74000000-0000-4000-8000-000000000001',
+      '74100000-0000-4000-8000-000000000001',
+      'TEST-EXTERNAL-1', 'test-external-class', 'External Catalog Test', 0, 'open',
+      'external', 'https://canvas.allenslane.org/classes/1', false
+    );
+    raise exception 'External class entered the internal registration status';
+  exception
+    when check_violation then null;
+  end;
+end $$;
+
+rollback;
+
 begin;
 
 insert into auth.users (

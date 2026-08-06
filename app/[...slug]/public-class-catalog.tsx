@@ -29,6 +29,15 @@ type ClassRow = {
   image_path: string | null;
   image_alt: string | null;
   status: "published" | "open" | "waitlist" | "closed";
+  checkout_mode: "internal" | "external";
+  external_registration_url: string | null;
+  instructor_display_text: string | null;
+  source_schedule_text: string | null;
+  source_location_text: string | null;
+  source_category: string | null;
+  delivery_mode: string | null;
+  fee_label: string | null;
+  source_registration_status: "open" | "waitlist" | "full" | "closed" | null;
 };
 
 type CatalogClass = ClassRow & {
@@ -77,6 +86,13 @@ function registrationLabel(status: ClassRow["status"]) {
   return "Registration coming soon";
 }
 
+function externalRegistrationLabel(status: ClassRow["source_registration_status"]) {
+  if (status === "waitlist") return "Join the Canvas waitlist";
+  if (status === "full") return "View full class";
+  if (status === "closed") return "View closed class";
+  return "Register in Canvas";
+}
+
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (error && typeof error === "object" && "message" in error) return String(error.message);
@@ -104,7 +120,7 @@ export function PublicClassCatalog() {
       try {
         const supabase = getSupabaseBrowserClient();
         const [classResult, programResult, termResult, facilityResult] = await Promise.all([
-          supabase.from("classes").select("id,program_id,term_id,facility_id,code,title,summary,description,level,age_min,age_max,capacity,price,member_price,fee,starts_at,ends_at,image_path,image_alt,status").in("status", publicStatuses).order("starts_at", { ascending: true, nullsFirst: false }).limit(250),
+          supabase.from("classes").select("id,program_id,term_id,facility_id,code,title,summary,description,level,age_min,age_max,capacity,price,member_price,fee,starts_at,ends_at,image_path,image_alt,status,checkout_mode,external_registration_url,instructor_display_text,source_schedule_text,source_location_text,source_category,delivery_mode,fee_label,source_registration_status").in("status", publicStatuses).order("starts_at", { ascending: true, nullsFirst: false }).limit(250),
           supabase.from("programs").select("id,name,audience").eq("status", "published").order("display_order").limit(250),
           supabase.from("terms").select("id,name,starts_on,ends_on").in("status", ["open", "closed"]).order("starts_on", { ascending: false }).limit(100),
           supabase.from("facilities").select("id,name").eq("status", "active").order("name").limit(100),
@@ -238,7 +254,7 @@ export function PublicClassCatalog() {
     const needle = query.trim().toLowerCase();
     return classes.filter((item) => {
       const matchesProgram = program === "all" || item.programName === program;
-      const searchable = [item.title, item.code, item.programName, item.termName, item.summary, item.level, item.audience].filter(Boolean).join(" ").toLowerCase();
+      const searchable = [item.title, item.code, item.programName, item.termName, item.summary, item.level, item.audience, item.instructor_display_text, item.source_category, item.source_location_text].filter(Boolean).join(" ").toLowerCase();
       return matchesProgram && (!needle || searchable.includes(needle));
     });
   }, [classes, program, query]);
@@ -272,29 +288,33 @@ export function PublicClassCatalog() {
           {filteredClasses.map((item) => {
             const image = imageSource(item.image_path);
             const ages = ageLabel(item.age_min, item.age_max);
-            const registrationClosed = item.status === "closed" || item.status === "published";
+            const isExternal = item.checkout_mode === "external";
+            const registrationClosed = !isExternal && (item.status === "closed" || item.status === "published");
+            const displayStatus = isExternal ? item.source_registration_status ?? "closed" : item.status;
             return (
               <article className="public-class-card" key={item.id}>
                 {image ? <img src={image} alt={item.image_alt ?? ""} /> : <div className="public-class-placeholder" aria-hidden="true"><span>Allens Lane</span></div>}
                 <div className="public-class-body">
-                  <div className="public-class-kicker"><span>{item.programName}</span><span className={`public-class-status public-class-status-${item.status}`}>{item.status}</span></div>
+                  <div className="public-class-kicker"><span>{item.source_category || item.programName}{item.delivery_mode ? ` · ${item.delivery_mode}` : ""}</span><span className={`public-class-status public-class-status-${displayStatus}`}>{displayStatus}</span></div>
                   <h3>{item.title}</h3>
                   <p className="public-class-code">{item.code} · {item.termName}</p>
                   {item.summary && <p>{item.summary}</p>}
                   <dl className="public-class-details">
-                    {item.starts_at && <div><dt>Starts</dt><dd>{dateTime.format(new Date(item.starts_at))}</dd></div>}
-                    {item.ends_at && <div><dt>Ends</dt><dd>{date.format(new Date(item.ends_at))}</dd></div>}
-                    {item.facilityName && <div><dt>Location</dt><dd>{item.facilityName}</dd></div>}
+                    {item.instructor_display_text && <div><dt>Instructor</dt><dd>{item.instructor_display_text === "TBD TBD" ? "To be announced" : item.instructor_display_text}</dd></div>}
+                    {item.source_schedule_text ? <div><dt>Schedule</dt><dd>{item.source_schedule_text.replace(" | ", " · ")}</dd></div> : <>
+                      {item.starts_at && <div><dt>Starts</dt><dd>{dateTime.format(new Date(item.starts_at))}</dd></div>}
+                      {item.ends_at && <div><dt>Ends</dt><dd>{date.format(new Date(item.ends_at))}</dd></div>}
+                    </>}
+                    {(item.source_location_text || item.facilityName) && <div><dt>Location</dt><dd>{item.source_location_text?.replace("None Specified", "To be announced").replace("None Selected", "To be announced") || item.facilityName}</dd></div>}
                     {(ages || item.level) && <div><dt>For</dt><dd>{[ages, item.level].filter(Boolean).join(" · ")}</dd></div>}
-                    <div><dt>Price</dt><dd>{currency.format(Number(item.price))}{item.member_price !== null ? ` · Members ${currency.format(Number(item.member_price))}` : ""}{Number(item.fee) > 0 ? ` + ${currency.format(Number(item.fee))} fee` : ""}</dd></div>
+                    <div><dt>Price</dt><dd>{currency.format(Number(item.price))}{item.member_price !== null ? ` · Members ${currency.format(Number(item.member_price))}` : ""}{Number(item.fee) > 0 ? ` + ${currency.format(Number(item.fee))} ${item.fee_label || "fee"}` : ""}</dd></div>
                   </dl>
-                  {registrationClosed ? <span className="dark-button public-class-button is-disabled" aria-disabled="true">{registrationLabel(item.status)}</span> : (
+                  {isExternal ? <a className="dark-button public-class-button" href={item.external_registration_url ?? "https://canvas.allenslane.org/classes"}>{externalRegistrationLabel(item.source_registration_status)}</a> : registrationClosed ? <span className="dark-button public-class-button is-disabled" aria-disabled="true">{registrationLabel(item.status)}</span> : (
                     <div className="public-class-actions">
                       <button className="dark-button public-class-button" type="button" aria-expanded={activeClassId === item.id} onClick={() => void openRegistration(item.id)}>{registrationLabel(item.status)}</button>
-                      <a className="text-button" href="https://canvas.allenslane.org/">Register in Canvas</a>
                     </div>
                   )}
-                  {activeClassId === item.id ? (
+                  {!isExternal && activeClassId === item.id ? (
                     <div className="public-registration-panel">
                       <p><strong>New-system test</strong> Choose a household participant. An open class creates a 15-minute hold; a full class adds the participant to the waitlist.</p>
                       {participantLoading ? <p role="status">Loading household participantsâ€¦</p> : (

@@ -201,7 +201,7 @@ p { margin: 0 0 1.15rem; }
 .public-class-status { padding: .25rem .5rem; border-radius: 999px; background: #e9e9e9; color: #333; }
 .public-class-status-open { background: #d9eee1; color: #225d37; }
 .public-class-status-waitlist { background: #fff0c9; color: #775300; }
-.public-class-status-closed { background: #ececec; color: #595959; }
+.public-class-status-closed, .public-class-status-full { background: #ececec; color: #595959; }
 .public-class-code { color: #5b5b5b; font-size: .7rem; font-weight: 700; }
 .public-class-details { display: grid; gap: .5rem; margin: 1.25rem 0; }
 .public-class-details div { display: grid; grid-template-columns: 5rem 1fr; gap: .75rem; }
@@ -604,7 +604,7 @@ p { margin: 0 0 1.15rem; }
 .programs-class-card tbody tr:last-child td { border-bottom: 0; }
 .programs-status { background: #eee8e3; border-radius: 999px; color: #67584d; display: inline-block; font-size: .65rem; font-weight: 700; padding: .3rem .55rem; white-space: nowrap; }
 .programs-status-open, .programs-status-published { background: #dcefe2; color: #28573a; }
-.programs-status-waitlist, .programs-status-closed { background: #fff0c7; color: #715316; }
+.programs-status-waitlist, .programs-status-closed, .programs-status-full { background: #fff0c7; color: #715316; }
 .programs-status-canceled, .programs-status-archived { background: #f0e1de; color: #7b3a31; }
 .programs-empty { color: #75695f; font-family: var(--ui); font-size: .82rem; margin: 0; padding: 1.25rem 0 .25rem; }
 .programs-limit-note { border-top: 1px solid #e5ddd6; color: #75695f; font-family: var(--ui); font-size: .72rem; margin: 1rem 0 0; padding-top: 1rem; }

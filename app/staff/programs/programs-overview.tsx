@@ -36,6 +36,12 @@ export type ClassRow = {
   image_path: string | null;
   image_alt: string | null;
   gl_account_code: string | null;
+  checkout_mode: "internal" | "external";
+  external_registration_url: string | null;
+  instructor_display_text: string | null;
+  source_schedule_text: string | null;
+  source_location_text: string | null;
+  source_registration_status: "open" | "waitlist" | "full" | "closed" | null;
   updated_at: string;
 };
 type Registration = { class_id: string; status: string };
@@ -156,7 +162,7 @@ export function ProgramsOverview() {
         supabase.from("programs").select("id,parent_id,code,name,description,audience,status,display_order").order("name").limit(250),
         supabase.from("terms").select("id,code,name,starts_on,ends_on,registration_opens_at,registration_closes_at,status").order("starts_on", { ascending: false }).limit(100),
         supabase.from("facilities").select("id,code,name,address_text,capacity,status").order("name").limit(100),
-        supabase.from("classes").select("id,program_id,term_id,facility_id,code,slug,title,summary,description,level,age_min,age_max,status,capacity,minimum_enrollment,price,member_price,fee,registration_opens_at,registration_closes_at,starts_at,ends_at,timezone,image_path,image_alt,gl_account_code,updated_at").order("updated_at", { ascending: false }).limit(250),
+        supabase.from("classes").select("id,program_id,term_id,facility_id,code,slug,title,summary,description,level,age_min,age_max,status,capacity,minimum_enrollment,price,member_price,fee,registration_opens_at,registration_closes_at,starts_at,ends_at,timezone,image_path,image_alt,gl_account_code,checkout_mode,external_registration_url,instructor_display_text,source_schedule_text,source_location_text,source_registration_status,updated_at").order("updated_at", { ascending: false }).limit(250),
         supabase.from("registrations").select("class_id,status").limit(5000),
         supabase.from("waitlist_entries").select("class_id,status").limit(5000),
       ]);
@@ -210,6 +216,7 @@ export function ProgramsOverview() {
         classRow.programName,
         classRow.termName,
         classRow.facilityName,
+        classRow.instructor_display_text ?? "",
       ].some((value) => value.toLowerCase().includes(normalized));
       return matchesStatus && matchesQuery;
     });
@@ -316,11 +323,11 @@ export function ProgramsOverview() {
               <tbody>
                 {filteredClasses.map((classRow) => (
                   <tr key={classRow.id}>
-                    <td><strong>{classRow.title}</strong><small>{classRow.code}</small></td>
+                    <td><strong>{classRow.title}</strong><small>{classRow.code}{classRow.instructor_display_text ? ` · ${classRow.instructor_display_text === "TBD TBD" ? "Instructor TBA" : classRow.instructor_display_text}` : ""}</small></td>
                     <td>{classRow.programName}<small>{classRow.termName}</small></td>
-                    <td>{classRow.starts_at ? dateTime.format(new Date(classRow.starts_at)) : "Not scheduled"}<small>{classRow.facilityName}</small></td>
-                    <td><span className={`programs-status programs-status-${classRow.status}`}>{label(classRow.status)}</span></td>
-                    <td><strong>{classRow.enrolled} / {classRow.capacity}</strong><small>Minimum {classRow.minimum_enrollment}</small></td>
+                    <td>{classRow.source_schedule_text?.replace(" | ", " · ") || (classRow.starts_at ? dateTime.format(new Date(classRow.starts_at)) : "Not scheduled")}<small>{classRow.source_location_text || classRow.facilityName}</small></td>
+                    <td><span className={`programs-status programs-status-${classRow.source_registration_status || classRow.status}`}>{classRow.checkout_mode === "external" ? `Canvas ${label(classRow.source_registration_status || "closed")}` : label(classRow.status)}</span></td>
+                    <td>{classRow.checkout_mode === "external" ? <><strong>Canvas managed</strong><small>Capacity imports after export</small></> : <><strong>{classRow.enrolled} / {classRow.capacity}</strong><small>Minimum {classRow.minimum_enrollment}</small></>}</td>
                     <td>{classRow.waiting}</td>
                     <td>{currency.format(Number(classRow.price))}{classRow.member_price !== null && <small>Member {currency.format(Number(classRow.member_price))}</small>}</td>
                   </tr>
