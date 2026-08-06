@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
 import { CatalogEditor } from "./catalog-editor";
+import { EnrollmentDesk } from "./enrollment-desk";
 
 type ViewState = "loading" | "signed-out" | "mfa-required" | "denied" | "ready";
 export type Program = { id: string; parent_id: string | null; code: string; name: string; description: string | null; audience: string | null; status: string; display_order: number };
@@ -257,7 +258,7 @@ export function ProgramsOverview() {
       </section>
 
       <aside className="programs-readonly-note">
-        <strong>Audited catalog editing is active.</strong> Every save requires an operational reason. Catalog Managers prepare programs, terms, facilities, and classes; Catalog Publishers release public programs and classes. Registration, transfer, and waitlist actions remain disabled.
+        <strong>Audited catalog and enrollment operations are active.</strong> Every save or enrollment action requires an operational reason. Canvas-managed classes remain read-only while the two systems run in parallel.
       </aside>
 
       <CatalogEditor
@@ -275,6 +276,8 @@ export function ProgramsOverview() {
         <article><span>Active classes</span><strong>{activeClasses}</strong></article>
         <article><span>Enrollment / waitlist</span><strong>{enrolled} / {waiting}</strong></article>
       </section>
+
+      <EnrollmentDesk enabled={permissions.includes("registrations.manage")} />
 
       <section className="programs-panel programs-term-card">
         <div>

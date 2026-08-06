@@ -180,6 +180,25 @@ begin
   end if;
 end $$;
 
+do $$
+begin
+  if has_table_privilege('authenticated', 'public.registrations', 'insert,update,delete') then
+    raise exception 'Authenticated users retain direct registration writes';
+  end if;
+  if has_table_privilege('authenticated', 'public.waitlist_entries', 'insert,update,delete') then
+    raise exception 'Authenticated users retain direct waitlist writes';
+  end if;
+  if has_table_privilege('anon', 'public.enrollment_desk_entries', 'select') then
+    raise exception 'Anonymous users can read the enrollment desk';
+  end if;
+  if not has_table_privilege('authenticated', 'public.enrollment_desk_entries', 'select') then
+    raise exception 'Authenticated enrollment desk access is missing';
+  end if;
+  if has_function_privilege('anon', 'public.manage_enrollment_record(text,uuid,text,text,integer)', 'execute') then
+    raise exception 'Anonymous users can call the enrollment mutation RPC';
+  end if;
+end $$;
+
 rollback;
 
 -- Customer household and participant workflows.

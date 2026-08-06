@@ -127,7 +127,10 @@ test("server-renders the protected programs and registration overview shell", as
   const response = await render("/staff/programs");
   const staffPortal = await readFile(new URL("../app/staff/staff-portal.tsx", import.meta.url), "utf8");
   const editor = await readFile(new URL("../app/staff/programs/catalog-editor.tsx", import.meta.url), "utf8");
+  const enrollmentDesk = await readFile(new URL("../app/staff/programs/enrollment-desk.tsx", import.meta.url), "utf8");
   const migration = await readFile(new URL("../supabase/migrations/20260806135059_catalog_write_workflows.sql", import.meta.url), "utf8");
+  const enrollmentMigration = await readFile(new URL("../supabase/migrations/20260806211214_enrollment_operations.sql", import.meta.url), "utf8");
+  const enrollmentHardening = await readFile(new URL("../supabase/migrations/20260806211443_harden_enrollment_operation_wrapper.sql", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -144,6 +147,17 @@ test("server-renders the protected programs and registration overview shell", as
   assert.match(migration, /revoke insert, update, delete on public\.classes from authenticated/i);
   assert.match(migration, /Catalog Publisher permission is required/i);
   assert.match(migration, /audit_classes/i);
+  assert.match(enrollmentDesk, /Enrollment Desk/i);
+  assert.match(enrollmentDesk, /from\("enrollment_desk_entries"\)/i);
+  assert.match(enrollmentDesk, /rpc\("manage_enrollment_record"/i);
+  assert.match(enrollmentDesk, /Operational reason/i);
+  assert.match(enrollmentMigration, /with \(security_invoker = true\)/i);
+  assert.match(enrollmentMigration, /Canvas-managed classes are read-only/i);
+  assert.match(enrollmentMigration, /Offers must follow the waitlist order/i);
+  assert.match(enrollmentMigration, /revoke insert, update, delete on public\.registrations from authenticated/i);
+  assert.match(enrollmentHardening, /set schema private/i);
+  assert.match(enrollmentHardening, /p_offer_hours is null/i);
+  assert.match(enrollmentHardening, /The enrollment record changed before the action completed/i);
 });
 
 test("server-renders the protected content and events overview shell", async () => {
