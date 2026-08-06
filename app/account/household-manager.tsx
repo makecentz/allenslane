@@ -139,7 +139,7 @@ async function fetchHouseholdData(userId: string): Promise<HouseholdData> {
   };
 }
 
-export function HouseholdManager({ userId }: { userId: string }) {
+export function HouseholdManager({ userId, refreshKey = 0 }: { userId: string; refreshKey?: number }) {
   const [data, setData] = useState<HouseholdData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -165,7 +165,7 @@ export function HouseholdManager({ userId }: { userId: string }) {
       .catch((loadError: unknown) => { if (active) setError(errorMessage(loadError)); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [userId]);
+  }, [userId, refreshKey]);
 
   const participantCount = useMemo(() => data?.members.filter((member) => !member.is_primary).length ?? 0, [data]);
 

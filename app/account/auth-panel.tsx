@@ -20,6 +20,7 @@ export function AuthPanel() {
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [householdRefreshKey, setHouseholdRefreshKey] = useState(0);
   const initializedUserId = useRef<string | null>(null);
   const authUserId = user?.id ?? null;
   const firstName = user?.user_metadata?.first_name ? String(user.user_metadata.first_name) : "";
@@ -99,6 +100,54 @@ export function AuthPanel() {
 
     void initializeAndLoadProfile();
   }, [authUserId, firstName, lastName, preferredName, phone, householdName]);
+
+  useEffect(() => {
+    if (!authUserId) return;
+    const parameters = new URLSearchParams(window.location.search);
+    if (parameters.get("checkout") !== "success") return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const sessionId = parameters.get("session_id");
+    if (!sessionId || !/^cs_(test_|live_)?[A-Za-z0-9]+$/.test(sessionId)) {
+      timer = setTimeout(() => {
+        if (active) setNotice("Payment received. Your registration confirmation will appear in your account shortly.");
+      }, 0);
+      return () => {
+        active = false;
+        if (timer) clearTimeout(timer);
+      };
+    }
+
+    let attempts = 0;
+    const supabase = getSupabaseBrowserClient();
+
+    async function checkCheckout() {
+      attempts += 1;
+      const { data } = await supabase
+        .from("payment_checkout_sessions")
+        .select("status")
+        .eq("stripe_checkout_session_id", sessionId)
+        .maybeSingle();
+      if (!active) return;
+      if (data?.status === "completed") {
+        setNotice("Payment confirmed. The registration is now active in your account.");
+        setHouseholdRefreshKey((value) => value + 1);
+        return;
+      }
+      if (data?.status === "failed" || data?.status === "expired") {
+        setError("The payment could not be matched to an active registration. Please contact the Art Center before paying again.");
+        return;
+      }
+      setNotice("Payment received. We are confirming your registration…");
+      if (attempts < 12) timer = setTimeout(checkCheckout, 1500);
+    }
+
+    void checkCheckout();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [authUserId]);
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
@@ -235,7 +284,7 @@ export function AuthPanel() {
         <p className="account-email">{user.email}</p>
         {notice && <p className="form-notice" role="status">{notice}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        <HouseholdManager userId={user.id} />
+        <HouseholdManager userId={user.id} refreshKey={householdRefreshKey} />
         <button className="text-button" type="button" onClick={signOut} disabled={submitting}>Sign out</button>
       </section>
     );

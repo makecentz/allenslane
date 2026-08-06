@@ -62,6 +62,9 @@ test("server-renders the customer account route without gating public pages", as
   const householdManager = await readFile(new URL("../app/account/household-manager.tsx", import.meta.url), "utf8");
   const householdMigration = await readFile(new URL("../supabase/migrations/20260806182153_customer_household_workflows.sql", import.meta.url), "utf8");
   const registrationMigration = await readFile(new URL("../supabase/migrations/20260806194015_customer_registration_holds.sql", import.meta.url), "utf8");
+  const stripeMigration = await readFile(new URL("../supabase/migrations/20260806213224_stripe_registration_checkout.sql", import.meta.url), "utf8");
+  const checkoutFunction = await readFile(new URL("../supabase/functions/create-registration-checkout/index.ts", import.meta.url), "utf8");
+  const webhookFunction = await readFile(new URL("../supabase/functions/stripe-registration-webhook/index.ts", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -72,7 +75,9 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(html, /Loading your account/i);
   assert.match(authPanel, /Create your staff password/i);
   assert.match(authPanel, /parameters\.has\("invite"\)/i);
-  assert.match(authPanel, /<HouseholdManager userId=\{user\.id\}/i);
+  assert.match(authPanel, /<HouseholdManager userId=\{user\.id\} refreshKey=\{householdRefreshKey\}/i);
+  assert.match(authPanel, /\.from\("payment_checkout_sessions"\)/i);
+  assert.match(authPanel, /Payment confirmed\. The registration is now active/i);
   assert.match(householdManager, /rpc\("save_customer_household"/i);
   assert.match(householdManager, /rpc\("save_household_participant"/i);
   assert.match(householdManager, /Household Profile/i);
@@ -86,6 +91,19 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(registrationMigration, /for update of c/i);
   assert.match(registrationMigration, /private\.can_manage_household\(hm\.household_id\)/i);
   assert.match(registrationMigration, /revoke all on function public\.prepare_class_registration/i);
+  assert.match(stripeMigration, /create table public\.payment_checkout_sessions/i);
+  assert.match(stripeMigration, /create table private\.stripe_webhook_events/i);
+  assert.match(stripeMigration, /alter table public\.payment_checkout_sessions enable row level security/i);
+  assert.match(stripeMigration, /create or replace function public\.finalize_registration_checkout/i);
+  assert.match(stripeMigration, /'stripe_checkout', p_session_id/i);
+  assert.match(stripeMigration, /grant execute on function public\.finalize_registration_checkout[\s\S]*to service_role/i);
+  assert.match(checkoutFunction, /idempotencyKey: `registration-checkout-\$\{payload\.checkout_id\}`/i);
+  assert.match(checkoutFunction, /Deno\.env\.get\("STRIPE_SECRET_KEY"\)/i);
+  assert.match(webhookFunction, /const rawBody = await request\.text\(\)/i);
+  assert.match(webhookFunction, /constructEventAsync/i);
+  assert.match(webhookFunction, /Deno\.env\.get\("STRIPE_WEBHOOK_SECRET"\)/i);
+  assert.match(webhookFunction, /rpc\("finalize_registration_checkout"/i);
+  assert.doesNotMatch(`${checkoutFunction}\n${webhookFunction}`, /sk_(?:test|live)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}/i);
   assert.doesNotMatch(householdManager, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
 });
 
@@ -217,7 +235,9 @@ test("keeps the public classes page available while progressively loading the pu
   assert.match(catalog, /Register in Canvas/i);
   assert.match(catalog, /external_registration_url/i);
   assert.match(catalog, /source_schedule_text/i);
-  assert.match(catalog, /Stripe is not active yet/i);
+  assert.match(catalog, /functions\.invoke\("create-registration-checkout"/i);
+  assert.match(catalog, /https:\/\/checkout\.stripe\.com/i);
+  assert.match(catalog, /Enrollment is confirmed only after Stripe verifies/i);
   assert.equal(JSON.parse(importData).length, 56);
   assert.match(importMigration, /checkout_mode text not null default 'internal'/i);
   assert.match(importMigration, /classes_external_checkout_status_check/i);

@@ -678,4 +678,40 @@ end $$;
 
 rollback;
 
+-- Stripe registration checkout permissions. Fulfillment functions stay service-only.
+begin;
+
+do $$
+begin
+  if has_table_privilege('anon', 'public.payment_checkout_sessions', 'select') then
+    raise exception 'Anonymous users can read payment checkout sessions';
+  end if;
+  if not has_table_privilege('authenticated', 'public.payment_checkout_sessions', 'select') then
+    raise exception 'Customers cannot read their RLS-filtered checkout sessions';
+  end if;
+  if has_table_privilege('authenticated', 'public.payment_checkout_sessions', 'insert,update,delete') then
+    raise exception 'Authenticated users retain direct checkout-session writes';
+  end if;
+  if not has_function_privilege('authenticated', 'public.begin_registration_checkout(uuid)', 'execute') then
+    raise exception 'Authenticated customers cannot begin registration checkout';
+  end if;
+  if has_function_privilege('anon', 'public.begin_registration_checkout(uuid)', 'execute') then
+    raise exception 'Anonymous users can begin registration checkout';
+  end if;
+  if has_function_privilege('authenticated', 'public.attach_registration_checkout(uuid,text,text,timestamp with time zone,boolean)', 'execute')
+     or has_function_privilege('authenticated', 'public.fail_registration_checkout(uuid,text)', 'execute')
+     or has_function_privilege('authenticated', 'public.finalize_registration_checkout(text,text,text,bigint,text,timestamp with time zone,boolean)', 'execute')
+     or has_function_privilege('authenticated', 'public.expire_registration_checkout(text,text,boolean)', 'execute') then
+    raise exception 'Authenticated users can call service-only checkout fulfillment functions';
+  end if;
+  if not has_function_privilege('service_role', 'public.attach_registration_checkout(uuid,text,text,timestamp with time zone,boolean)', 'execute')
+     or not has_function_privilege('service_role', 'public.fail_registration_checkout(uuid,text)', 'execute')
+     or not has_function_privilege('service_role', 'public.finalize_registration_checkout(text,text,text,bigint,text,timestamp with time zone,boolean)', 'execute')
+     or not has_function_privilege('service_role', 'public.expire_registration_checkout(text,text,boolean)', 'execute') then
+    raise exception 'Service role checkout fulfillment permissions are incomplete';
+  end if;
+end $$;
+
+rollback;
+
 \echo 'Security assertions passed.'

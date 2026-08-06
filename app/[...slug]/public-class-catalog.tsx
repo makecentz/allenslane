@@ -80,7 +80,7 @@ function ageLabel(ageMin: number | null, ageMax: number | null) {
 }
 
 function registrationLabel(status: ClassRow["status"]) {
-  if (status === "open") return "Test new registration";
+  if (status === "open") return "Register now";
   if (status === "waitlist") return "Join the waitlist";
   if (status === "closed") return "Registration closed";
   return "Registration coming soon";
@@ -235,8 +235,19 @@ export function PublicClassCatalog() {
       if (error) throw error;
       const result = data as RegistrationResult;
       if (result.action === "registration_hold") {
-        const expiry = result.expires_at ? dateTime.format(new Date(result.expires_at)) : "in 15 minutes";
-        setRegistrationNotice(`Test successful: a ${currency.format(Number(result.total_amount ?? 0))} hold is ready until ${expiry}. No payment or enrollment was created.`);
+        if (!result.hold_id) throw new Error("Registration hold was not returned.");
+        setRegistrationNotice(`Your ${currency.format(Number(result.total_amount ?? 0))} registration is reserved. Opening secure Stripe Checkout…`);
+        const { data: checkoutData, error: checkoutError } = await getSupabaseBrowserClient().functions.invoke("create-registration-checkout", {
+          body: { holdId: result.hold_id },
+        });
+        if (checkoutError) throw checkoutError;
+        const checkoutUrl = checkoutData && typeof checkoutData.url === "string" ? checkoutData.url : "";
+        if (!checkoutUrl) throw new Error(checkoutData?.error || "Stripe Checkout did not return a payment link.");
+        const redirect = new URL(checkoutUrl, window.location.origin);
+        if (redirect.origin !== "https://checkout.stripe.com" && redirect.origin !== window.location.origin) {
+          throw new Error("Stripe Checkout returned an unexpected payment address.");
+        }
+        window.location.assign(redirect.toString());
       } else if (result.action === "waitlisted") {
         setRegistrationNotice(`This participant is on the waitlist at position ${result.position ?? 1}. No payment is due.`);
       } else {
@@ -266,7 +277,7 @@ export function PublicClassCatalog() {
       <div className="public-catalog-heading">
         <p className="eyebrow">Live class catalog</p>
         <h2 id="current-classes-heading">Current Classes</h2>
-        <p>Browse published classes from the Allens Lane registration system. Canvas remains the live checkout while the new Stripe workflow is tested.</p>
+        <p>Browse published classes from the Allens Lane registration system. Canvas remains active for imported classes while new-system classes use secure Stripe Checkout.</p>
       </div>
 
       <div className="public-catalog-filters" aria-label="Filter current classes">
@@ -316,7 +327,7 @@ export function PublicClassCatalog() {
                   )}
                   {!isExternal && activeClassId === item.id ? (
                     <div className="public-registration-panel">
-                      <p><strong>New-system test</strong> Choose a household participant. An open class creates a 15-minute hold; a full class adds the participant to the waitlist.</p>
+                      <p><strong>Register securely</strong> Choose a household participant. An available class reserves a place while you pay through Stripe; a full class adds the participant to the waitlist.</p>
                       {participantLoading ? <p role="status">Loading household participantsâ€¦</p> : (
                         <>
                           <label>
@@ -326,11 +337,11 @@ export function PublicClassCatalog() {
                             </select>
                           </label>
                           <button className="dark-button" type="button" disabled={registrationSaving || !selectedParticipantId} onClick={() => void prepareRegistration(item.id)}>
-                            {registrationSaving ? "Checkingâ€¦" : item.status === "waitlist" ? "Join waitlist" : "Prepare registration"}
+                            {registrationSaving ? "Preparing secure checkout…" : item.status === "waitlist" ? "Join waitlist" : "Continue to payment"}
                           </button>
                         </>
                       )}
-                      <p className="public-registration-note">Stripe is not active yet. This test does not charge a card or confirm enrollment.</p>
+                      <p className="public-registration-note">Payment is handled on Stripe&apos;s secure checkout page. Enrollment is confirmed only after Stripe verifies the payment.</p>
                       {registrationNotice ? <p className="form-notice" role="status">{registrationNotice}</p> : null}
                       {registrationError ? <p className="form-error" role="alert">{registrationError}</p> : null}
                     </div>
