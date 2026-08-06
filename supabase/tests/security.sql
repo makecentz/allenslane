@@ -182,6 +182,109 @@ end $$;
 
 rollback;
 
+-- Customer household and participant workflows.
+begin;
+
+insert into auth.users (
+  id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values
+  ('90000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'household-owner@example.test', 'not-used', now(), '{}', '{"first_name":"Household","last_name":"Owner"}', now(), now()),
+  ('90000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'household-outsider@example.test', 'not-used', now(), '{}', '{"first_name":"Household","last_name":"Outsider"}', now(), now());
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"90000000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal1"}',
+  true
+);
+
+select public.complete_customer_onboarding('Household', 'Owner', null, '215-555-0100', 'Owner Household');
+
+select public.save_customer_household(
+  'Household', 'Owner', 'H.O.', '215-555-0101', 'Owner Family',
+  null, '601 W Allens Lane', null, 'Philadelphia', 'PA', '19119', 'US'
+);
+
+select public.save_household_participant(
+  (select hm.household_id from public.household_members hm join public.people p on p.id = hm.person_id where p.auth_user_id = '90000000-0000-4000-8000-000000000001'),
+  'Young', 'Artist', 'child', null, null, (current_date - interval '10 years')::date, null, null
+);
+
+do $$
+declare
+  owner_household_id uuid;
+begin
+  select hm.household_id into owner_household_id
+  from public.household_members hm
+  join public.people p on p.id = hm.person_id
+  where p.auth_user_id = '90000000-0000-4000-8000-000000000001';
+
+  if not exists (select 1 from public.households where id = owner_household_id and name = 'Owner Family') then
+    raise exception 'Customer household update was not stored';
+  end if;
+  if not exists (select 1 from public.addresses where household_id = owner_household_id and is_primary and postal_code = '19119') then
+    raise exception 'Customer household address was not stored';
+  end if;
+  if not exists (
+    select 1 from public.household_members hm
+    join public.people p on p.id = hm.person_id
+    where hm.household_id = owner_household_id
+      and p.first_name = 'Young'
+      and p.last_name = 'Artist'
+      and hm.relationship = 'child'
+      and not hm.is_guardian
+      and not hm.can_manage_household
+  ) then
+    raise exception 'Household participant was not stored with safe privileges';
+  end if;
+  begin
+    insert into public.people (first_name, last_name) values ('Direct', 'Write');
+    raise exception 'Expected direct customer table write to be denied';
+  exception
+    when insufficient_privilege then null;
+  end;
+end $$;
+
+reset role;
+select set_config(
+  'test.household_id',
+  (select hm.household_id::text from public.household_members hm join public.people p on p.id = hm.person_id where p.auth_user_id = '90000000-0000-4000-8000-000000000001'),
+  true
+);
+
+do $$
+begin
+  if (select count(*) from public.audit_events where entity_table in ('people', 'households', 'household_members', 'addresses')) < 4 then
+    raise exception 'Customer household audit events were not written';
+  end if;
+end $$;
+
+set local role authenticated;
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"90000000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal1"}',
+  true
+);
+
+do $$
+declare
+  owner_household_id uuid := current_setting('test.household_id')::uuid;
+begin
+  begin
+    perform public.save_household_participant(owner_household_id, 'Unauthorized', 'Person', 'other');
+    raise exception 'Expected cross-household participant write to be denied';
+  exception
+    when others then
+      if sqlerrm = 'Expected cross-household participant write to be denied' then
+        raise;
+      end if;
+  end;
+end $$;
+
+rollback;
+
 begin;
 
 insert into auth.users (

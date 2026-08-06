@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
+import { HouseholdManager } from "./household-manager";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "recovery" | "invite";
 type Profile = { first_name: string; last_name: string; preferred_name: string | null };
@@ -234,12 +235,7 @@ export function AuthPanel() {
         <p className="account-email">{user.email}</p>
         {notice && <p className="form-notice" role="status">{notice}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        <div className="account-placeholder-grid">
-          <div><strong>Household</strong><span>Profile setup connected</span></div>
-          <div><strong>Registrations</strong><span>Coming in the next release</span></div>
-          <div><strong>Payments</strong><span>Coming in the next release</span></div>
-          <div><strong>Membership</strong><span>Coming in the next release</span></div>
-        </div>
+        <HouseholdManager userId={user.id} />
         <button className="text-button" type="button" onClick={signOut} disabled={submitting}>Sign out</button>
       </section>
     );

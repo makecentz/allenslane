@@ -8,8 +8,9 @@ This repository contains the public Allens L website clone and the Supabase foun
 - ChatGPT sign-in removed; public pages open directly
 - Phase 1 requirements, permissions, migration, retention, and integration decisions documented in `docs/phase-1/`
 - Phase 2 Supabase schema, RLS, staff MFA enforcement, audit trail, Storage policies, manual cutover boundary, and security assertions implemented in `supabase/`
-- Live `alanedb` Supabase project connected; eight production migrations deployed and verified
+- Live `alanedb` Supabase project connected; nine production migrations deployed and verified
 - Customer email/password sign-in, sign-up, recovery, onboarding, and account shell implemented at `/account`
+- Customer household profile, home-address, and participant management implemented at `/account` through guarded, audited RPCs; participant creation cannot grant guardian, manager, or primary-account privileges
 - Staff sign-in, mandatory TOTP enrollment/challenge, and permission-aware portal shell implemented at `/staff`
 - Read-only Finance overview implemented at `/staff/finance` for authorized `aal2` staff sessions
 - Read-only People & Households directory implemented at `/staff/people` with search and data-minimization boundaries
@@ -19,7 +20,7 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
 - Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation is intentionally deferred until final-domain launch
 - Gerrell Jones and Tara Harrison Turner are active super administrators with all 12 application roles; Tara accepted her staff-portal invitation and must complete MFA enrollment before protected access is usable
-- Remaining registration, people, and finance write workflows are next; final-domain DNS and Resend configuration are reserved for the last launch step
+- Registration and finance write workflows are next; final-domain DNS and Resend configuration are reserved for the last launch step
 
 ## Local frontend
 

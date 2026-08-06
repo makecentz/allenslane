@@ -59,6 +59,8 @@ test("keeps public pages free of ChatGPT sign-in and starter preview artifacts",
 test("server-renders the customer account route without gating public pages", async () => {
   const response = await render("/account");
   const authPanel = await readFile(new URL("../app/account/auth-panel.tsx", import.meta.url), "utf8");
+  const householdManager = await readFile(new URL("../app/account/household-manager.tsx", import.meta.url), "utf8");
+  const householdMigration = await readFile(new URL("../supabase/migrations/20260806182153_customer_household_workflows.sql", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -69,6 +71,16 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(html, /Loading your account/i);
   assert.match(authPanel, /Create your staff password/i);
   assert.match(authPanel, /parameters\.has\("invite"\)/i);
+  assert.match(authPanel, /<HouseholdManager userId=\{user\.id\}/i);
+  assert.match(householdManager, /rpc\("save_customer_household"/i);
+  assert.match(householdManager, /rpc\("save_household_participant"/i);
+  assert.match(householdManager, /Household Profile/i);
+  assert.match(householdManager, /Household Participants/i);
+  assert.match(householdMigration, /revoke insert, update, delete on public\.people, public\.households/i);
+  assert.match(householdMigration, /if not private\.can_manage_household\(p_household_id\)/i);
+  assert.match(householdMigration, /p\.auth_user_id is null/i);
+  assert.match(householdMigration, /false, false,\s*false, 'active'/i);
+  assert.doesNotMatch(householdManager, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
 });
 
 test("server-renders the protected staff portal shell", async () => {

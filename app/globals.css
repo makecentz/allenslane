@@ -414,11 +414,45 @@ p { margin: 0 0 1.15rem; }
 .account-placeholder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin: 2rem 0; }
 .account-placeholder-grid div { background: #f3f0e9; border-radius: .55rem; display: grid; gap: .2rem; padding: 1rem; }
 .account-placeholder-grid span { color: #65706b; font-size: .82rem; }
+.account-summary { grid-column: 1 / -1; }
+.account-summary + .account-help { display: none; }
+.household-loading { display: grid; min-height: 12rem; place-items: center; color: #65706b; }
+.household-manager { display: grid; gap: 1.5rem; margin: 1.5rem 0 2rem; }
+.household-section { border: 1px solid rgba(31, 57, 52, .14); border-radius: .8rem; padding: clamp(1.25rem, 3vw, 2rem); }
+.household-section-heading { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1.5rem; }
+.household-section-heading .eyebrow { margin-bottom: .35rem; }
+.household-section-heading h3 { color: #83352f; font-size: clamp(1.3rem, 2.5vw, 1.8rem); margin: 0; }
+.household-section-heading > span { color: #65706b; font-family: var(--ui); font-size: .72rem; }
+.household-section-heading .dark-button { cursor: pointer; white-space: nowrap; }
+.household-form { display: grid; gap: 1.1rem; }
+.household-form label { color: #24332f; display: grid; font-family: var(--ui); font-size: .78rem; font-weight: 700; gap: .4rem; }
+.household-form label span, .household-form legend span { color: #6a716d; font-size: .72rem; font-weight: 500; }
+.household-form input, .household-form select { appearance: none; background: #fff; border: 1px solid #b9bdb8; border-radius: .45rem; color: #18231f; font: inherit; min-height: 3rem; padding: .7rem .85rem; width: 100%; }
+.household-form select { background-image: linear-gradient(45deg, transparent 50%, #44514c 50%), linear-gradient(135deg, #44514c 50%, transparent 50%); background-position: calc(100% - 18px) 1.25rem, calc(100% - 13px) 1.25rem; background-repeat: no-repeat; background-size: 5px 5px, 5px 5px; padding-right: 2.5rem; }
+.household-form input:focus, .household-form select:focus { border-color: #a7332b; box-shadow: 0 0 0 3px rgba(167, 51, 43, .14); outline: none; }
+.household-form fieldset { border: 0; display: grid; gap: 1rem; margin: .35rem 0 0; padding: 1.25rem; background: #f5f2eb; border-radius: .65rem; }
+.household-form legend { color: #24332f; font-family: var(--ui); font-size: .82rem; font-weight: 700; padding: 0 .35rem; }
+.household-address-row { display: grid; gap: 1rem; grid-template-columns: 1.2fr .6fr .75fr; }
+.household-form > .dark-button { cursor: pointer; justify-self: start; min-height: 3rem; }
+.household-form button:disabled { cursor: wait; opacity: .65; }
+.participant-list { display: grid; gap: .7rem; }
+.participant-card { align-items: center; background: #f5f2eb; border-radius: .6rem; display: flex; gap: 1rem; justify-content: space-between; padding: 1rem 1.15rem; }
+.participant-card > div { display: grid; gap: .2rem; }
+.participant-card strong { font-family: var(--ui); font-size: .88rem; }
+.participant-card span { color: #65706b; font-family: var(--ui); font-size: .7rem; }
+.participant-connected { white-space: nowrap; }
+.participant-form { border-top: 1px solid rgba(31, 57, 52, .14); margin-top: 1.5rem; padding-top: 1.5rem; }
+.participant-form h4 { color: #83352f; font-size: 1.15rem; margin: 0; }
+.household-form-actions { align-items: center; display: flex; gap: 1rem; }
+.household-form-actions .dark-button { cursor: pointer; min-height: 3rem; }
 
 @media (max-width: 760px) {
   .account-layout { grid-template-columns: 1fr; }
   .form-row, .account-placeholder-grid { grid-template-columns: 1fr; }
   .account-help { padding-top: 0; }
+  .household-section-heading { align-items: flex-start; flex-direction: column; }
+  .household-address-row { grid-template-columns: 1fr; }
+  .participant-card { align-items: flex-start; }
 }
 
 /* Staff portal */
