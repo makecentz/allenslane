@@ -3,25 +3,39 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
+import { CatalogEditor } from "./catalog-editor";
 
 type ViewState = "loading" | "signed-out" | "mfa-required" | "denied" | "ready";
-type Program = { id: string; code: string; name: string; status: string };
-type Term = { id: string; code: string; name: string; starts_on: string; ends_on: string; status: string };
-type Facility = { id: string; code: string; name: string; status: string };
-type ClassRow = {
+export type Program = { id: string; parent_id: string | null; code: string; name: string; description: string | null; audience: string | null; status: string; display_order: number };
+export type Term = { id: string; code: string; name: string; starts_on: string; ends_on: string; registration_opens_at: string | null; registration_closes_at: string | null; status: string };
+export type Facility = { id: string; code: string; name: string; address_text: string | null; capacity: number | null; status: string };
+export type ClassRow = {
   id: string;
   program_id: string;
   term_id: string;
   facility_id: string | null;
   code: string;
+  slug: string;
   title: string;
+  summary: string | null;
+  description: string | null;
+  level: string | null;
+  age_min: number | string | null;
+  age_max: number | string | null;
   status: string;
   capacity: number;
   minimum_enrollment: number;
   price: number | string;
   member_price: number | string | null;
+  fee: number | string;
+  registration_opens_at: string | null;
+  registration_closes_at: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  timezone: string;
+  image_path: string | null;
+  image_alt: string | null;
+  gl_account_code: string | null;
   updated_at: string;
 };
 type Registration = { class_id: string; status: string };
@@ -69,6 +83,8 @@ export function ProgramsOverview() {
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -134,12 +150,13 @@ export function ProgramsOverview() {
         setView("denied");
         return;
       }
+      setPermissions(permissionRows?.map((row) => row.permission) ?? []);
 
       const [programResult, termResult, facilityResult, classResult, registrationResult, waitlistResult] = await Promise.all([
-        supabase.from("programs").select("id,code,name,status").order("name").limit(250),
-        supabase.from("terms").select("id,code,name,starts_on,ends_on,status").order("starts_on", { ascending: false }).limit(100),
-        supabase.from("facilities").select("id,code,name,status").order("name").limit(100),
-        supabase.from("classes").select("id,program_id,term_id,facility_id,code,title,status,capacity,minimum_enrollment,price,member_price,starts_at,ends_at,updated_at").order("updated_at", { ascending: false }).limit(250),
+        supabase.from("programs").select("id,parent_id,code,name,description,audience,status,display_order").order("name").limit(250),
+        supabase.from("terms").select("id,code,name,starts_on,ends_on,registration_opens_at,registration_closes_at,status").order("starts_on", { ascending: false }).limit(100),
+        supabase.from("facilities").select("id,code,name,address_text,capacity,status").order("name").limit(100),
+        supabase.from("classes").select("id,program_id,term_id,facility_id,code,slug,title,summary,description,level,age_min,age_max,status,capacity,minimum_enrollment,price,member_price,fee,registration_opens_at,registration_closes_at,starts_at,ends_at,timezone,image_path,image_alt,gl_account_code,updated_at").order("updated_at", { ascending: false }).limit(250),
         supabase.from("registrations").select("class_id,status").limit(5000),
         supabase.from("waitlist_entries").select("class_id,status").limit(5000),
       ]);
@@ -164,7 +181,7 @@ export function ProgramsOverview() {
 
     void loadPrograms();
     return () => { active = false; };
-  }, []);
+  }, [refreshKey]);
 
   const summaries = useMemo(() => {
     const programById = new Map(programs.map((program) => [program.id, program.name]));
@@ -233,8 +250,17 @@ export function ProgramsOverview() {
       </section>
 
       <aside className="programs-readonly-note">
-        <strong>Read-only release view.</strong> Counts reflect only records allowed by your role. Catalog changes, enrollment actions, transfers, and waitlist promotions remain disabled until their approval rules and acceptance tests are complete.
+        <strong>Audited catalog editing is active.</strong> Every save requires an operational reason. Catalog Managers prepare programs, terms, facilities, and classes; Catalog Publishers release public programs and classes. Registration, transfer, and waitlist actions remain disabled.
       </aside>
+
+      <CatalogEditor
+        programs={programs}
+        terms={terms}
+        facilities={facilities}
+        classes={classes}
+        permissions={permissions}
+        onSaved={() => setRefreshKey((value) => value + 1)}
+      />
 
       <section className="programs-metrics" aria-label="Programs and registration summary">
         <article><span>Programs</span><strong>{programs.length}</strong></article>
