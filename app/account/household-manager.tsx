@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 
 type Person = {
@@ -38,6 +39,17 @@ type HouseholdData = {
   household: Household;
   address: Address | null;
   members: Array<Member & { person: Person; editable: boolean }>;
+  activity: AccountActivity[];
+};
+type AccountActivity = {
+  id: string;
+  classId: string;
+  participantPersonId: string;
+  type: "hold" | "waitlist" | "registration";
+  status: string;
+  amount: number | null;
+  timestamp: string;
+  classTitle: string;
 };
 type ParticipantForm = {
   id: string;
@@ -78,20 +90,28 @@ function birthDateLabel(value: string | null) {
 
 async function fetchHouseholdData(userId: string): Promise<HouseholdData> {
   const supabase = getSupabaseBrowserClient();
-  const [peopleResult, householdResult, memberResult, addressResult] = await Promise.all([
+  const [peopleResult, householdResult, memberResult, addressResult, holdResult, registrationResult, waitlistResult, classResult] = await Promise.all([
     supabase.from("people").select("id,auth_user_id,first_name,last_name,preferred_name,email,phone,birth_date").eq("status", "active").limit(100),
     supabase.from("households").select("id,name,primary_person_id").eq("status", "active").limit(20),
     supabase.from("household_members").select("household_id,person_id,relationship,is_primary,is_guardian,can_manage_household").eq("status", "active").limit(100),
     supabase.from("addresses").select("id,household_id,line1,line2,city,region,postal_code,country_code,is_primary").eq("address_type", "home").limit(20),
+    supabase.from("registration_holds").select("id,class_id,participant_person_id,household_id,status,total_amount,expires_at,created_at").order("created_at", { ascending: false }).limit(100),
+    supabase.from("registrations").select("id,class_id,participant_person_id,household_id,status,registered_at").order("registered_at", { ascending: false }).limit(100),
+    supabase.from("waitlist_entries").select("id,class_id,participant_person_id,household_id,status,joined_at").order("joined_at", { ascending: false }).limit(100),
+    supabase.from("classes").select("id,title,code").limit(250),
   ]);
 
-  const firstError = [peopleResult, householdResult, memberResult, addressResult].find((result) => result.error)?.error;
+  const firstError = [peopleResult, householdResult, memberResult, addressResult, holdResult, registrationResult, waitlistResult, classResult].find((result) => result.error)?.error;
   if (firstError) throw firstError;
 
   const people = (peopleResult.data ?? []) as Person[];
   const households = (householdResult.data ?? []) as Household[];
   const members = (memberResult.data ?? []) as Member[];
   const addresses = (addressResult.data ?? []) as Address[];
+  const holds = (holdResult.data ?? []) as Array<{ id: string; class_id: string; participant_person_id: string; household_id: string; status: string; total_amount: number; expires_at: string; created_at: string }>;
+  const registrations = (registrationResult.data ?? []) as Array<{ id: string; class_id: string; participant_person_id: string; household_id: string; status: string; registered_at: string }>;
+  const waitlist = (waitlistResult.data ?? []) as Array<{ id: string; class_id: string; participant_person_id: string; household_id: string; status: string; joined_at: string }>;
+  const classById = new Map(((classResult.data ?? []) as Array<{ id: string; title: string; code: string }>).map((item) => [item.id, `${item.title} (${item.code})`]));
   const profile = people.find((person) => person.auth_user_id === userId);
   const membership = profile ? members.find((member) => member.person_id === profile.id) : null;
   const household = membership ? households.find((item) => item.id === membership.household_id) : null;
@@ -111,6 +131,11 @@ async function fetchHouseholdData(userId: string): Promise<HouseholdData> {
     household,
     address: addresses.find((item) => item.household_id === household.id && item.is_primary) ?? addresses.find((item) => item.household_id === household.id) ?? null,
     members: householdMembers,
+    activity: [
+      ...holds.filter((item) => item.household_id === household.id).map((item): AccountActivity => ({ id: item.id, classId: item.class_id, participantPersonId: item.participant_person_id, type: "hold", status: item.status === "active" && new Date(item.expires_at) <= new Date() ? "expired" : item.status, amount: Number(item.total_amount), timestamp: item.expires_at, classTitle: classById.get(item.class_id) ?? "Class" })),
+      ...registrations.filter((item) => item.household_id === household.id).map((item): AccountActivity => ({ id: item.id, classId: item.class_id, participantPersonId: item.participant_person_id, type: "registration", status: item.status, amount: null, timestamp: item.registered_at, classTitle: classById.get(item.class_id) ?? "Class" })),
+      ...waitlist.filter((item) => item.household_id === household.id).map((item): AccountActivity => ({ id: item.id, classId: item.class_id, participantPersonId: item.participant_person_id, type: "waitlist", status: item.status, amount: null, timestamp: item.joined_at, classTitle: classById.get(item.class_id) ?? "Class" })),
+    ].sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()),
   };
 }
 
@@ -237,8 +262,8 @@ export function HouseholdManager({ userId }: { userId: string }) {
       <div className="account-placeholder-grid" aria-label="Account readiness">
         <div><strong>Household</strong><span>Profile connected</span></div>
         <div><strong>Participants</strong><span>{participantCount} added</span></div>
-        <div><strong>Registrations</strong><span>Next release</span></div>
-        <div><strong>Payments</strong><span>Stripe setup follows registration</span></div>
+        <div><strong>Registrations</strong><span>{data.activity.length > 0 ? `${data.activity.length} activity item${data.activity.length === 1 ? "" : "s"}` : "Ready for testing"}</span></div>
+        <div><strong>Payments</strong><span>Stripe intentionally deferred</span></div>
       </div>
 
       {notice ? <p className="form-notice" role="status">{notice}</p> : null}
@@ -314,6 +339,31 @@ export function HouseholdManager({ userId }: { userId: string }) {
             </div>
           </form>
         ) : null}
+      </section>
+
+      <section className="household-section" aria-labelledby="registration-activity-heading">
+        <div className="household-section-heading">
+          <div><p className="eyebrow">Registration testing</p><h3 id="registration-activity-heading">Registration &amp; Waitlist Activity</h3></div>
+          <Link className="text-button" href="/classes">Browse classes</Link>
+        </div>
+        {data.activity.length > 0 ? (
+          <div className="participant-list">
+            {data.activity.map((item) => {
+              const participant = data.members.find((member) => member.person.id === item.participantPersonId)?.person;
+              const participantName = participant ? `${participant.preferred_name || participant.first_name} ${participant.last_name}` : "Household participant";
+              const label = item.type === "hold" ? "Registration hold" : item.type === "waitlist" ? "Waitlist" : "Registration";
+              return (
+                <article className="participant-card" key={`${item.type}-${item.id}`}>
+                  <div>
+                    <strong>{item.classTitle}</strong>
+                    <span>{label} Â· {participantName} Â· {item.status}{item.amount !== null ? ` Â· $${item.amount.toFixed(2)}` : ""}</span>
+                  </div>
+                  <span className="participant-connected">{item.type === "hold" && item.status === "active" ? `Expires ${new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(item.timestamp))}` : new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(item.timestamp))}</span>
+                </article>
+              );
+            })}
+          </div>
+        ) : <p className="account-empty-state">No registration or waitlist activity yet. Published classes will appear on the Classes page.</p>}
       </section>
     </div>
   );

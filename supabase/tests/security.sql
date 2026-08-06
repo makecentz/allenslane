@@ -285,6 +285,128 @@ end $$;
 
 rollback;
 
+-- Customer registration holds and waitlists.
+begin;
+
+insert into auth.users (
+  id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values
+  ('73000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'registration-owner@example.test', 'not-used', now(), '{}', '{"first_name":"Registration","last_name":"Owner"}', now(), now()),
+  ('73000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'registration-outsider@example.test', 'not-used', now(), '{}', '{"first_name":"Registration","last_name":"Outsider"}', now(), now());
+
+insert into public.programs (id, code, name, status)
+values ('70000000-0000-4000-8000-000000000001', 'TEST-REG', 'Registration Test', 'published');
+insert into public.terms (
+  id, code, name, starts_on, ends_on, registration_opens_at, registration_closes_at, status
+) values (
+  '71000000-0000-4000-8000-000000000001', 'TEST-TERM', 'Registration Test Term',
+  current_date, current_date + 90, now() - interval '1 day', now() + interval '20 days', 'open'
+);
+insert into public.classes (
+  id, program_id, term_id, code, slug, title, age_min, age_max, capacity,
+  price, fee, starts_at, ends_at, status, published_at
+) values (
+  '72000000-0000-4000-8000-000000000001',
+  '70000000-0000-4000-8000-000000000001',
+  '71000000-0000-4000-8000-000000000001',
+  'TEST-CLASS', 'test-class', 'Registration Test Class', 8, 18, 1,
+  100, 5, now() + interval '30 days', now() + interval '31 days', 'open', now()
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"73000000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal1"}',
+  true
+);
+select public.complete_customer_onboarding('Registration', 'Owner', null, null, 'Registration Household');
+select public.save_customer_household(
+  'Registration', 'Owner', null, null, 'Registration Household',
+  null, '601 W Allens Lane', null, 'Philadelphia', 'PA', '19119', 'US'
+);
+select public.save_household_participant(
+  (select hm.household_id from public.household_members hm join public.people p on p.id = hm.person_id where p.auth_user_id = '73000000-0000-4000-8000-000000000001'),
+  'First', 'Artist', 'child', null, null, (current_date - interval '10 years')::date, null, null
+);
+select public.save_household_participant(
+  (select hm.household_id from public.household_members hm join public.people p on p.id = hm.person_id where p.auth_user_id = '73000000-0000-4000-8000-000000000001'),
+  'Second', 'Artist', 'child', null, null, (current_date - interval '11 years')::date, null, null
+);
+
+do $$
+declare
+  first_id uuid := (select id from public.people where first_name = 'First' and last_name = 'Artist');
+  second_id uuid := (select id from public.people where first_name = 'Second' and last_name = 'Artist');
+  first_result jsonb;
+  repeat_result jsonb;
+  second_result jsonb;
+begin
+  first_result := public.prepare_class_registration('72000000-0000-4000-8000-000000000001', first_id);
+  if first_result ->> 'action' <> 'registration_hold'
+     or (first_result ->> 'total_amount')::numeric <> 105 then
+    raise exception 'Expected a 105 dollar registration hold, got %', first_result;
+  end if;
+
+  repeat_result := public.prepare_class_registration('72000000-0000-4000-8000-000000000001', first_id);
+  if repeat_result ->> 'hold_id' <> first_result ->> 'hold_id'
+     or (select count(*) from public.registration_holds where participant_person_id = first_id and status = 'active') <> 1 then
+    raise exception 'Repeated registration preparation was not idempotent';
+  end if;
+
+  second_result := public.prepare_class_registration('72000000-0000-4000-8000-000000000001', second_id);
+  if second_result ->> 'action' <> 'waitlisted'
+     or (second_result ->> 'position')::integer <> 1 then
+    raise exception 'Expected waitlist position one, got %', second_result;
+  end if;
+
+  begin
+    insert into public.registration_holds (
+      class_id, participant_person_id, household_id, purchaser_person_id,
+      unit_amount, fee_amount, total_amount, expires_at, created_by
+    ) values (
+      '72000000-0000-4000-8000-000000000001', first_id,
+      (select household_id from public.household_members where person_id = first_id),
+      (select id from public.people where auth_user_id = '73000000-0000-4000-8000-000000000001'),
+      1, 0, 1, now() + interval '5 minutes', '73000000-0000-4000-8000-000000000001'
+    );
+    raise exception 'Expected direct registration hold insert to be denied';
+  exception
+    when insufficient_privilege then null;
+  end;
+end $$;
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"73000000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal1"}',
+  true
+);
+
+do $$
+declare
+  first_id uuid := (select id from public.people where first_name = 'First' and last_name = 'Artist');
+begin
+  begin
+    perform public.prepare_class_registration('72000000-0000-4000-8000-000000000001', first_id);
+    raise exception 'Expected cross-household registration preparation to be denied';
+  exception
+    when others then
+      if sqlerrm = 'Expected cross-household registration preparation to be denied' then
+        raise;
+      end if;
+  end;
+end $$;
+
+reset role;
+do $$
+begin
+  if (select count(*) from public.audit_events where entity_table in ('registration_holds', 'waitlist_entries')) < 2 then
+    raise exception 'Registration and waitlist audit events were not written';
+  end if;
+end $$;
+
+rollback;
+
 begin;
 
 insert into auth.users (

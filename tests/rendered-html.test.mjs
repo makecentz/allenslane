@@ -61,6 +61,7 @@ test("server-renders the customer account route without gating public pages", as
   const authPanel = await readFile(new URL("../app/account/auth-panel.tsx", import.meta.url), "utf8");
   const householdManager = await readFile(new URL("../app/account/household-manager.tsx", import.meta.url), "utf8");
   const householdMigration = await readFile(new URL("../supabase/migrations/20260806182153_customer_household_workflows.sql", import.meta.url), "utf8");
+  const registrationMigration = await readFile(new URL("../supabase/migrations/20260806194015_customer_registration_holds.sql", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -76,10 +77,15 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(householdManager, /rpc\("save_household_participant"/i);
   assert.match(householdManager, /Household Profile/i);
   assert.match(householdManager, /Household Participants/i);
+  assert.match(householdManager, /Registration &amp; Waitlist Activity/i);
   assert.match(householdMigration, /revoke insert, update, delete on public\.people, public\.households/i);
   assert.match(householdMigration, /if not private\.can_manage_household\(p_household_id\)/i);
   assert.match(householdMigration, /p\.auth_user_id is null/i);
   assert.match(householdMigration, /false, false,\s*false, 'active'/i);
+  assert.match(registrationMigration, /create table public\.registration_holds/i);
+  assert.match(registrationMigration, /for update of c/i);
+  assert.match(registrationMigration, /private\.can_manage_household\(hm\.household_id\)/i);
+  assert.match(registrationMigration, /revoke all on function public\.prepare_class_registration/i);
   assert.doesNotMatch(householdManager, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
 });
 
@@ -189,5 +195,8 @@ test("keeps the public classes page available while progressively loading the pu
   assert.match(catalog, /\.in\("status", publicStatuses\)/i);
   assert.match(catalog, /\.from\("programs"\).*\.eq\("status", "published"\)/i);
   assert.match(catalog, /if \(classes\.length === 0\) return null/i);
+  assert.match(catalog, /rpc\("prepare_class_registration"/i);
+  assert.match(catalog, /Register in Canvas/i);
+  assert.match(catalog, /Stripe is not active yet/i);
   assert.doesNotMatch(catalog, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
 });

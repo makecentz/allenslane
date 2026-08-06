@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element -- Catalog images may be local or staff-managed external URLs. */
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "../../lib/supabase/browser";
 
 type Program = { id: string; name: string; audience: string | null };
@@ -36,6 +37,20 @@ type CatalogClass = ClassRow & {
   termName: string;
   facilityName: string | null;
 };
+type ParticipantOption = {
+  id: string;
+  label: string;
+  birthDate: string | null;
+};
+type RegistrationResult = {
+  action: "registration_hold" | "waitlisted" | "already_registered";
+  hold_id?: string;
+  expires_at?: string;
+  total_amount?: number;
+  waitlist_entry_id?: string;
+  position?: number;
+  registration_id?: string;
+};
 
 const publicStatuses = ["published", "open", "waitlist", "closed"];
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -56,16 +71,31 @@ function ageLabel(ageMin: number | null, ageMax: number | null) {
 }
 
 function registrationLabel(status: ClassRow["status"]) {
-  if (status === "open") return "Register in Canvas";
+  if (status === "open") return "Test new registration";
   if (status === "waitlist") return "Join the waitlist";
   if (status === "closed") return "Registration closed";
   return "Registration coming soon";
 }
 
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) return String(error.message);
+  return "Something went wrong. Please try again.";
+}
+
 export function PublicClassCatalog() {
+  const router = useRouter();
   const [classes, setClasses] = useState<CatalogClass[]>([]);
   const [query, setQuery] = useState("");
   const [program, setProgram] = useState("all");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [activeClassId, setActiveClassId] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<ParticipantOption[]>([]);
+  const [selectedParticipantId, setSelectedParticipantId] = useState("");
+  const [participantLoading, setParticipantLoading] = useState(false);
+  const [registrationSaving, setRegistrationSaving] = useState(false);
+  const [registrationNotice, setRegistrationNotice] = useState("");
+  const [registrationError, setRegistrationError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -109,6 +139,100 @@ export function PublicClassCatalog() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    void supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user.id ?? null));
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        setParticipants([]);
+        setSelectedParticipantId("");
+        setActiveClassId(null);
+        setRegistrationNotice("");
+        setRegistrationError("");
+      }
+      setUserId(session?.user.id ?? null);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  async function loadParticipants(currentUserId: string) {
+    setParticipantLoading(true);
+    setRegistrationError("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const [peopleResult, memberResult] = await Promise.all([
+        supabase.from("people").select("id,auth_user_id,first_name,last_name,preferred_name,birth_date").eq("status", "active").limit(250),
+        supabase.from("household_members").select("household_id,person_id,is_primary,is_guardian,can_manage_household").eq("status", "active").limit(250),
+      ]);
+      if (peopleResult.error) throw peopleResult.error;
+      if (memberResult.error) throw memberResult.error;
+
+      const people = (peopleResult.data ?? []) as Array<{ id: string; auth_user_id: string | null; first_name: string; last_name: string; preferred_name: string | null; birth_date: string | null }>;
+      const memberships = (memberResult.data ?? []) as Array<{ household_id: string; person_id: string; is_primary: boolean; is_guardian: boolean; can_manage_household: boolean }>;
+      const profile = people.find((person) => person.auth_user_id === currentUserId);
+      const manageableHouseholds = new Set(
+        memberships
+          .filter((member) => member.person_id === profile?.id && (member.is_primary || member.is_guardian || member.can_manage_household))
+          .map((member) => member.household_id),
+      );
+      const participantIds = new Set(memberships.filter((member) => manageableHouseholds.has(member.household_id)).map((member) => member.person_id));
+      const options = people
+        .filter((person) => participantIds.has(person.id))
+        .map((person) => ({
+          id: person.id,
+          label: `${person.preferred_name || person.first_name} ${person.last_name}${person.id === profile?.id ? " (you)" : ""}`,
+          birthDate: person.birth_date,
+        }))
+        .sort((left, right) => left.label.localeCompare(right.label));
+
+      if (options.length === 0) throw new Error("Add your household profile and participants before registering.");
+      setParticipants(options);
+      setSelectedParticipantId((current) => current || profile?.id || options[0].id);
+    } catch (loadError) {
+      setRegistrationError(errorMessage(loadError));
+    } finally {
+      setParticipantLoading(false);
+    }
+  }
+
+  async function openRegistration(classId: string) {
+    setRegistrationNotice("");
+    setRegistrationError("");
+    if (!userId) {
+      router.push("/account");
+      return;
+    }
+    setActiveClassId((current) => current === classId ? null : classId);
+    if (participants.length === 0) await loadParticipants(userId);
+  }
+
+  async function prepareRegistration(classId: string) {
+    if (!selectedParticipantId) return;
+    setRegistrationSaving(true);
+    setRegistrationNotice("");
+    setRegistrationError("");
+    try {
+      const { data, error } = await getSupabaseBrowserClient().rpc("prepare_class_registration", {
+        p_class_id: classId,
+        p_participant_person_id: selectedParticipantId,
+      });
+      if (error) throw error;
+      const result = data as RegistrationResult;
+      if (result.action === "registration_hold") {
+        const expiry = result.expires_at ? dateTime.format(new Date(result.expires_at)) : "in 15 minutes";
+        setRegistrationNotice(`Test successful: a ${currency.format(Number(result.total_amount ?? 0))} hold is ready until ${expiry}. No payment or enrollment was created.`);
+      } else if (result.action === "waitlisted") {
+        setRegistrationNotice(`This participant is on the waitlist at position ${result.position ?? 1}. No payment is due.`);
+      } else {
+        setRegistrationNotice("This participant already has an active registration for the class.");
+      }
+    } catch (saveError) {
+      setRegistrationError(errorMessage(saveError));
+    } finally {
+      setRegistrationSaving(false);
+    }
+  }
+
   const programOptions = useMemo(() => [...new Set(classes.map((item) => item.programName))].sort(), [classes]);
   const filteredClasses = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -126,7 +250,7 @@ export function PublicClassCatalog() {
       <div className="public-catalog-heading">
         <p className="eyebrow">Live class catalog</p>
         <h2 id="current-classes-heading">Current Classes</h2>
-        <p>Browse published classes from the Allens Lane registration system. Checkout remains in Canvas during the transition.</p>
+        <p>Browse published classes from the Allens Lane registration system. Canvas remains the live checkout while the new Stripe workflow is tested.</p>
       </div>
 
       <div className="public-catalog-filters" aria-label="Filter current classes">
@@ -164,7 +288,33 @@ export function PublicClassCatalog() {
                     {(ages || item.level) && <div><dt>For</dt><dd>{[ages, item.level].filter(Boolean).join(" · ")}</dd></div>}
                     <div><dt>Price</dt><dd>{currency.format(Number(item.price))}{item.member_price !== null ? ` · Members ${currency.format(Number(item.member_price))}` : ""}{Number(item.fee) > 0 ? ` + ${currency.format(Number(item.fee))} fee` : ""}</dd></div>
                   </dl>
-                  {registrationClosed ? <span className="dark-button public-class-button is-disabled" aria-disabled="true">{registrationLabel(item.status)}</span> : <a className="dark-button public-class-button" href="https://canvas.allenslane.org/">{registrationLabel(item.status)}</a>}
+                  {registrationClosed ? <span className="dark-button public-class-button is-disabled" aria-disabled="true">{registrationLabel(item.status)}</span> : (
+                    <div className="public-class-actions">
+                      <button className="dark-button public-class-button" type="button" aria-expanded={activeClassId === item.id} onClick={() => void openRegistration(item.id)}>{registrationLabel(item.status)}</button>
+                      <a className="text-button" href="https://canvas.allenslane.org/">Register in Canvas</a>
+                    </div>
+                  )}
+                  {activeClassId === item.id ? (
+                    <div className="public-registration-panel">
+                      <p><strong>New-system test</strong> Choose a household participant. An open class creates a 15-minute hold; a full class adds the participant to the waitlist.</p>
+                      {participantLoading ? <p role="status">Loading household participantsâ€¦</p> : (
+                        <>
+                          <label>
+                            <span>Participant</span>
+                            <select value={selectedParticipantId} onChange={(event) => setSelectedParticipantId(event.target.value)}>
+                              {participants.map((participant) => <option key={participant.id} value={participant.id}>{participant.label}{participant.birthDate ? "" : " â€” birth date needed for age-limited classes"}</option>)}
+                            </select>
+                          </label>
+                          <button className="dark-button" type="button" disabled={registrationSaving || !selectedParticipantId} onClick={() => void prepareRegistration(item.id)}>
+                            {registrationSaving ? "Checkingâ€¦" : item.status === "waitlist" ? "Join waitlist" : "Prepare registration"}
+                          </button>
+                        </>
+                      )}
+                      <p className="public-registration-note">Stripe is not active yet. This test does not charge a card or confirm enrollment.</p>
+                      {registrationNotice ? <p className="form-notice" role="status">{registrationNotice}</p> : null}
+                      {registrationError ? <p className="form-error" role="alert">{registrationError}</p> : null}
+                    </div>
+                  ) : null}
                 </div>
               </article>
             );

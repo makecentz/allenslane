@@ -210,6 +210,15 @@ p { margin: 0 0 1.15rem; }
 .public-class-button { margin-top: .25rem; }
 .public-class-button.is-disabled { background: #777; cursor: not-allowed; opacity: .85; }
 .public-catalog-empty { padding: 1.5rem; background: #fff; font-family: var(--ui); font-size: .82rem; }
+.public-class-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 1rem; }
+.public-class-actions button { border: 0; cursor: pointer; }
+.public-registration-panel { background: #f5f2eb; border-left: .35rem solid var(--purple); display: grid; gap: .8rem; margin-top: 1.25rem; padding: 1.1rem; }
+.public-registration-panel > p { margin: 0; }
+.public-registration-panel label { display: grid; font-size: .72rem; font-weight: 700; gap: .35rem; }
+.public-registration-panel select { appearance: none; background: #fff; border: 1px solid #aaa; border-radius: .35rem; color: var(--black); font: inherit; min-height: 3rem; padding: .65rem .8rem; width: 100%; }
+.public-registration-panel > .dark-button { border: 0; cursor: pointer; justify-self: start; }
+.public-registration-panel > .dark-button:disabled { cursor: wait; opacity: .65; }
+.public-registration-note { color: #5d625f; font-size: .7rem; }
 
 @media (max-width: 1080px) {
   .site-header, .site-header.compact { height: 125px; background: var(--paper); }
@@ -418,6 +427,7 @@ p { margin: 0 0 1.15rem; }
 .account-summary + .account-help { display: none; }
 .household-loading { display: grid; min-height: 12rem; place-items: center; color: #65706b; }
 .household-manager { display: grid; gap: 1.5rem; margin: 1.5rem 0 2rem; }
+.account-empty-state { background: #f5f2eb; color: #5f6965; font-family: var(--ui); font-size: .8rem; margin: 0; padding: 1rem; }
 .household-section { border: 1px solid rgba(31, 57, 52, .14); border-radius: .8rem; padding: clamp(1.25rem, 3vw, 2rem); }
 .household-section-heading { align-items: center; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1.5rem; }
 .household-section-heading .eyebrow { margin-bottom: .35rem; }
