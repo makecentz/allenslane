@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 const mainNav = [
-  { label: "Classes", href: "https://canvas.allenslane.org/", children: [
-    ["Youth", "https://canvas.allenslane.org/"], ["Adults", "https://canvas.allenslane.org/"],
+  { label: "Classes", href: "/classes/", children: [
+    ["Youth", "/classes/youth/"], ["Adults", "/classes/adults/"],
     ["Summer Camp", "/summer-camp/"], ["Vision Thru Art", "/vision-thru-art/"],
   ] },
   { label: "Theater", href: "/theater/", children: [
@@ -25,7 +25,7 @@ const secondaryNav = [
     ["Overview", "/about/"], ["Our Team", "/about/our-team/"], ["Work with Us", "/about/work-with-us/"], ["History", "/about/history/"],
   ] },
   { label: "Rentals", href: "/about/rentals/", children: [["Birthday Parties", "/about/rentals/birthday-parties/"]] },
-  { label: "Events", href: "https://canvas.allenslane.org/" },
+  { label: "Events", href: "/events/" },
   { label: "My Account", href: "/account" },
   { label: "Contact", href: "/contact/" },
   { label: "Support", href: "/support/", children: [
@@ -33,7 +33,7 @@ const secondaryNav = [
     ["Ways to Give", "/support/ways-to-give/"], ["Sponsorship Opportunities", "/support/sponsorship-opportunities/"],
   ] },
   { label: "Shop", href: "https://canvas.allenslane.org/" },
-  { label: "Donate", href: "https://canvas.allenslane.org/", button: true },
+  { label: "Donate", href: "/support/donate/", button: true },
 ];
 
 type NavItem = { label: string; href: string; children?: string[][]; button?: boolean };
@@ -59,6 +59,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [compact, setCompact] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onScroll = () => setCompact(window.scrollY > 100);
@@ -70,6 +71,22 @@ export function SiteShell({ children }: { children: ReactNode }) {
     document.body.style.overflow = mobileOpen || searchOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen, searchOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen && !searchOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileOpen, searchOpen]);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
 
   const closeMenus = () => setMobileOpen(false);
 
@@ -86,13 +103,13 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <NavList items={mainNav} />
           </div>
           <div className="header-tools">
-            <button className="icon-button search-button" onClick={() => setSearchOpen(true)} aria-label="Search">⌕</button>
-            <button className="icon-button menu-button" onClick={() => setMobileOpen(true)} aria-label="Open menu">☰</button>
+            <button className="icon-button search-button" onClick={() => setSearchOpen(true)} aria-label="Search" aria-expanded={searchOpen}>⌕</button>
+            <button className="icon-button menu-button" onClick={() => setMobileOpen(true)} aria-label="Open menu" aria-expanded={mobileOpen}>☰</button>
           </div>
         </div>
       </header>
 
-      <div className={`overlay-menu mobile-overlay ${mobileOpen ? "open" : ""}`} aria-hidden={!mobileOpen}>
+      <div className={`overlay-menu mobile-overlay ${mobileOpen ? "open" : ""}`} aria-hidden={!mobileOpen} role="dialog" aria-modal="true" aria-label="Site menu">
         <button className="overlay-close" onClick={() => setMobileOpen(false)} aria-label="Close menu">×</button>
         <nav className="mobile-nav container">
           <NavList items={mainNav} onNavigate={closeMenus} />
@@ -101,16 +118,16 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </nav>
       </div>
 
-      <div className={`overlay-menu search-overlay ${searchOpen ? "open" : ""}`} aria-hidden={!searchOpen}>
+      <div className={`overlay-menu search-overlay ${searchOpen ? "open" : ""}`} aria-hidden={!searchOpen} role="dialog" aria-modal="true" aria-labelledby="site-search-title">
         <button className="overlay-close" onClick={() => setSearchOpen(false)} aria-label="Close search">×</button>
         <div className="search-panel">
-          <h2>Search the site:</h2>
-          <form action="/search/">
+          <h2 id="site-search-title">Search the site:</h2>
+          <form action="/search">
             <label className="sr-only" htmlFor="search">Search</label>
-            <input id="search" name="q" placeholder="Search here..." />
+            <input ref={searchInputRef} id="search" name="q" type="search" placeholder="Search here..." maxLength={120} required />
             <button type="submit">Search</button>
           </form>
-          <p>Try searching for: Adult Classes · Youth Classes · Theater · Exhibitions</p>
+          <p>Try searching for: <Link href="/search?q=adult+classes">Adult Classes</Link> · <Link href="/search?q=youth+classes">Youth Classes</Link> · <Link href="/search?q=theater">Theater</Link> · <Link href="/search?q=exhibitions">Exhibitions</Link></p>
         </div>
       </div>
 
@@ -135,7 +152,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
           <div>
             <nav className="footer-links">
               <Link href="/blog/">Blog</Link><Link href="/in-the-news/">News</Link>
-              <a href="https://canvas.allenslane.org/">Donate</a><a href="https://canvas.allenslane.org/">Shop</a>
+              <Link href="/support/donate/">Donate</Link><a href="https://canvas.allenslane.org/">Shop</a>
               <Link href="/staff">Staff Login</Link>
             </nav>
             <div className="footer-details">

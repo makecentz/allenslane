@@ -99,10 +99,10 @@ function errorMessage(error: unknown) {
   return "Something went wrong. Please try again.";
 }
 
-export function PublicClassCatalog() {
+export function PublicClassCatalog({ initialQuery = "" }: { initialQuery?: string }) {
   const router = useRouter();
   const [classes, setClasses] = useState<CatalogClass[]>([]);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [program, setProgram] = useState("all");
   const [userId, setUserId] = useState<string | null>(null);
   const [activeClassId, setActiveClassId] = useState<string | null>(null);

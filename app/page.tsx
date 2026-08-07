@@ -6,36 +6,43 @@ import { SiteShell } from "./site-shell";
 
 const slides = ["/images/hero-1.jpg", "/images/hero-2.jpg", "/images/hero-3.jpg"];
 
+const sponsors = [
+  ["Weavers Way Co-op", "https://weaversway.coop/"], ["Malelani Cafe", "https://malelani.cafe/"],
+  ["Salam Cafe", "https://www.alifamilyrestaurants.com/"], ["Elfant Wissahickon Realtors", "https://elfantwissahickon.com/"],
+  ["Renewal by Andersen of Greater Philadelphia", "https://renewalbyandersenreplacement.com/"], ["PFCU", "https://www.pfcu.com/"],
+  ["Kurtz Construction", "https://kurtzconstruction.com/"], ["Image360", "https://image360.com/"],
+  ["Univest Financial", "https://www.univest.net/"], ["PrimoHoagies", "https://www.primohoagies.com/"],
+  ["Blinebury Design", "https://blineburydesign.com/"], ["Philly Office Retail", "https://phillyofficeretail.com/"],
+] as const;
+
 const features = [
   {
     image: "/images/festival.jpg",
     title: "4th Annual Mt. Airy Arts Festival",
     detail: "October 3 · 11 AM – 4 PM",
     href: "/mt-airy-arts-festival/",
+    linkLabel: "Learn More",
   },
   {
     image: "/images/fall-classes.png",
     title: "2026 Fall Session",
     detail: "Registration happening now!",
-    href: "https://canvas.allenslane.org/",
-  },
-  {
-    image: "/images/summer-camp.jpg",
-    title: "2026 Summer Art Camp",
-    detail: "June 15 – August 7",
-    href: "/summer-camp/",
-  },
-  {
-    image: "/images/theater.jpg",
-    title: "Songs For A New World",
-    detail: "Two weekends · July 24 – August 2",
-    href: "/theater/",
+    href: "/classes/",
+    linkLabel: "Learn More & Register",
   },
   {
     image: "/images/membership.png",
-    title: "Become a Member",
-    detail: "Join and sustain a creative community.",
+    title: "Become a Member at Allens Lane Art Center!",
+    detail: "Join and sustain our creative community.",
     href: "/about/membership/",
+    linkLabel: "Learn More & Join",
+  },
+  {
+    image: "/images/theater.jpg",
+    title: "The N Crowd Improv Comedy Show",
+    detail: "Saturday, September 5 · 7 PM",
+    href: "/theater/",
+    linkLabel: "Learn More & Get Tickets",
   },
 ];
 
@@ -43,6 +50,7 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(() => setSlide((value) => (value + 1) % slides.length), 7000);
     return () => window.clearInterval(timer);
   }, []);
@@ -65,9 +73,9 @@ export default function Home() {
             </h1>
             <div className="hero-actions">
               <Link className="light-button" href="/theater/">Live at the Lane</Link>
-              <a className="light-button" href="https://canvas.allenslane.org/">Classes</a>
+              <Link className="light-button" href="/classes/">Classes</Link>
               <Link className="light-button" href="/about/membership/">Membership</Link>
-              <a className="light-button" href="https://canvas.allenslane.org/">Calendar of Events</a>
+              <Link className="light-button" href="/events/">Calendar of Events</Link>
             </div>
           </div>
           <div className="slider-dots" aria-label="Choose hero image">
@@ -94,7 +102,7 @@ export default function Home() {
               <p>
                 Art, music, food, neighbors, and creative discovery come together for a full day at Allens Lane.
               </p>
-              <a className="dark-button" href={features[0].href}>Learn More</a>
+              <Link className="dark-button" href={features[0].href}>{features[0].linkLabel}</Link>
             </div>
           </div>
         </section>
@@ -103,12 +111,12 @@ export default function Home() {
           <div className="container cards-grid">
             {features.slice(1).map((feature) => (
               <article className="feature-card" key={feature.title}>
-                <a href={feature.href} className="feature-image-wrap">
+                <Link href={feature.href} className="feature-image-wrap">
                   <img src={feature.image} alt="" />
-                </a>
+                </Link>
                 <h2>{feature.title}</h2>
                 <h3>{feature.detail}</h3>
-                <a className="dark-button" href={feature.href}>Learn More &amp; Register</a>
+                <Link className="dark-button" href={feature.href}>{feature.linkLabel}</Link>
               </article>
             ))}
           </div>
@@ -119,12 +127,12 @@ export default function Home() {
             <article>
               <h2>Support Us</h2>
               <p>We rely on you to bring enriching, low-cost art education and theater programs to our neighborhood.</p>
-              <a className="light-button" href="https://canvas.allenslane.org/">Donate Now</a>
+              <Link className="light-button" href="/support/donate/">Donate Now</Link>
             </article>
             <article>
               <h2>Classes</h2>
               <p>Allens Lane Art Center offers classes for adults, teens, and youth ages 5–12. Enroll today!</p>
-              <a className="light-button" href="https://canvas.allenslane.org/">All Classes</a>
+              <Link className="light-button" href="/classes/">All Classes</Link>
             </article>
           </div>
         </section>
@@ -146,10 +154,10 @@ export default function Home() {
               <p>We are grateful to the organizations that support our creative community and year-round programs.</p>
             </div>
             <div className="sponsor-grid">
-              {Array.from({ length: 12 }, (_, index) => (
-                <div className="sponsor-logo" key={index}>
-                  <img src={`/images/sponsor-${index + 1}.png`} alt="Community sponsor" />
-                </div>
+              {sponsors.map(([name, href], index) => (
+                <a className="sponsor-logo" href={href} target="_blank" rel="noreferrer" key={name} aria-label={`Visit ${name}`}>
+                  <img src={`/images/sponsor-${index + 1}.png`} alt={name} />
+                </a>
               ))}
             </div>
           </div>

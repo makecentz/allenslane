@@ -4,11 +4,11 @@ This repository contains the public Allens L website clone and the Supabase foun
 
 ## Current status
 
-- Public multi-route frontend clone implemented with Vinext/Next.js
+- Public multi-route frontend clone implemented with Vinext/Next.js, including working search, completed sitemap routes, crawler metadata, original staff portraits, responsive navigation, and a functional contact-email handoff
 - ChatGPT sign-in removed; public pages open directly
 - Phase 1 requirements, permissions, migration, retention, and integration decisions documented in `docs/phase-1/`
 - Phase 2 Supabase schema, RLS, staff MFA enforcement, audit trail, Storage policies, manual cutover boundary, and security assertions implemented in `supabase/`
-- Live `alanedb` Supabase project connected; nine production migrations deployed and verified
+- Live `alanedb` Supabase project connected; 17 production migrations deployed and verified
 - Customer email/password sign-in, sign-up, recovery, onboarding, and account shell implemented at `/account`
 - Customer household profile, home-address, and participant management implemented at `/account` through guarded, audited RPCs; participant creation cannot grant guardian, manager, or primary-account privileges
 - Staff sign-in, mandatory TOTP enrollment/challenge, and permission-aware portal shell implemented at `/staff`
@@ -17,10 +17,10 @@ This repository contains the public Allens L website clone and the Supabase foun
 - Audited Programs & Catalog workspace implemented at `/staff/programs` with guarded program, term, facility, class, schedule, pricing, capacity, and publication management; registration and waitlist actions remain read-only
 - Public `/classes` catalog connected to RLS-filtered Supabase records with search, program filtering, responsive class cards, and an unchanged-content fallback while no published records exist
 - Audited Content & Events workspace implemented at `/staff/content` with role-scoped draft editing, publisher approval, event management, operational reasons, and protected external ticketing links
-- Controlled Administration & Audit workspace implemented at `/staff/admin` for activating existing accounts, granting or revoking roles, changing staff status, and reviewing audit events
+- Controlled Administration, Integrations & Audit workspace implemented at `/staff/admin` for activating accounts, managing roles and staff status, reviewing audit events, and replacing encrypted API/webhook configuration through Supabase Vault
 - Protected `invite-staff` Edge Function and staff invitation acceptance/password flow implemented; production Resend SMTP activation is intentionally deferred until final-domain launch
 - Gerrell Jones and Tara Harrison Turner are active super administrators with all 12 application roles; Tara accepted her staff-portal invitation and must complete MFA enrollment before protected access is usable
-- Registration and finance write workflows are next; final-domain DNS and Resend configuration are reserved for the last launch step
+- Public-site completion is delivered; registration operations, Finance/QuickBooks workflows, data cutover, and later operational modules continue before the deliberately deferred Stripe activation, final-domain DNS, and Resend launch work
 
 ## Local frontend
 

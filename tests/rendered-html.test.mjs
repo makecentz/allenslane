@@ -266,3 +266,51 @@ test("keeps the public classes page available while progressively loading the pu
   assert.match(importMigration, /'art_center_canvas'/i);
   assert.doesNotMatch(catalog, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
 });
+
+test("completes public search, contact, team, and audience class routes", async () => {
+  const [searchResponse, contactResponse, teamResponse, adultResponse, missingResponse] = await Promise.all([
+    render("/search?q=theater"),
+    render("/contact"),
+    render("/about/our-team"),
+    render("/classes/adults"),
+    render("/this-page-does-not-exist"),
+  ]);
+  const [searchHtml, contactHtml, teamHtml, adultHtml] = await Promise.all([
+    searchResponse.text(), contactResponse.text(), teamResponse.text(), adultResponse.text(),
+  ]);
+  const [interiorPage, contactForm, shell] = await Promise.all([
+    readFile(new URL("../app/[...slug]/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/[...slug]/contact-form.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/site-shell.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.equal(searchResponse.status, 200);
+  assert.match(searchHtml, /Search results for “theater”/i);
+  assert.match(searchHtml, /Current Theater Season/i);
+  assert.match(searchHtml, /Open page/i);
+  assert.equal(contactResponse.status, 200);
+  assert.match(contactHtml, /Prepare email/i);
+  assert.match(contactForm, /mailto:info@allenslane\.org/i);
+  assert.equal(teamResponse.status, 200);
+  assert.match(teamHtml, /team-tara\.png/i);
+  assert.match(teamHtml, /Nan Latona/i);
+  assert.equal(adultResponse.status, 200);
+  assert.match(adultHtml, /Adult Classes/i);
+  assert.match(interiorPage, /initialQuery=\{path === "classes\/adults" \? "adult"/i);
+  assert.match(shell, /href: "\/classes\/"/i);
+  assert.match(shell, /href: "\/events\/"/i);
+  assert.match(shell, /href: "\/support\/donate\/"/i);
+  assert.doesNotMatch(interiorPage, /href="#"|Image placeholder|Portrait placeholder|ready for final content/i);
+  assert.equal(missingResponse.status, 404);
+});
+
+test("publishes crawler metadata for the completed public route map", async () => {
+  const [sitemapResponse, robotsResponse] = await Promise.all([render("/sitemap.xml"), render("/robots.txt")]);
+  const [sitemapXml, robotsText] = await Promise.all([sitemapResponse.text(), robotsResponse.text()]);
+  assert.equal(sitemapResponse.status, 200);
+  assert.match(sitemapXml, /<loc>https:\/\/allens-lane-art-center-clone\.ecomexperts\.chatgpt\.site\/classes<\/loc>/i);
+  assert.match(sitemapXml, /profile\/tara-harrison-turner/i);
+  assert.equal(robotsResponse.status, 200);
+  assert.match(robotsText, /Disallow: \/staff\//i);
+  assert.match(robotsText, /Sitemap: https:\/\/allens-lane-art-center-clone\.ecomexperts\.chatgpt\.site\/sitemap\.xml/i);
+});
