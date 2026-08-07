@@ -36,8 +36,8 @@ Deno.serve(async (request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const siteUrl = Deno.env.get("APP_URL") ?? productionUrl;
+  let stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+  let siteUrl = Deno.env.get("APP_URL") ?? productionUrl;
 
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     return response(origin, { error: "Payment service is unavailable" }, 503);
@@ -47,6 +47,17 @@ Deno.serve(async (request) => {
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  const [managedStripeKey, managedSiteUrl] = await Promise.all([
+    admin.rpc("get_integration_secret", { p_setting_key: "stripe_secret_key" }),
+    admin.rpc("get_integration_secret", { p_setting_key: "app_url" }),
+  ]);
+  if (typeof managedStripeKey.data === "string" && managedStripeKey.data) {
+    stripeSecretKey = managedStripeKey.data;
+  }
+  if (typeof managedSiteUrl.data === "string" && managedSiteUrl.data) {
+    siteUrl = managedSiteUrl.data;
+  }
 
   try {
     const input = await request.json() as { holdId?: unknown };

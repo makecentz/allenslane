@@ -714,4 +714,34 @@ end $$;
 
 rollback;
 
+-- Integration metadata is System Admin-readable; values are write-only and service-readable.
+begin;
+
+do $$
+begin
+  if has_table_privilege('anon', 'public.integration_settings', 'select') then
+    raise exception 'Anonymous users can read integration metadata';
+  end if;
+  if not has_table_privilege('authenticated', 'public.integration_settings', 'select') then
+    raise exception 'Authenticated System Administrators cannot read RLS-filtered integration metadata';
+  end if;
+  if has_table_privilege('authenticated', 'public.integration_settings', 'insert,update,delete') then
+    raise exception 'Authenticated users retain direct integration metadata writes';
+  end if;
+  if not has_function_privilege('authenticated', 'public.save_integration_setting(text,text,text)', 'execute') then
+    raise exception 'Authenticated System Administrators cannot use the guarded integration workflow';
+  end if;
+  if has_function_privilege('anon', 'public.save_integration_setting(text,text,text)', 'execute') then
+    raise exception 'Anonymous users can call the integration workflow';
+  end if;
+  if has_function_privilege('authenticated', 'public.get_integration_secret(text)', 'execute') then
+    raise exception 'Authenticated users can retrieve decrypted integration secrets';
+  end if;
+  if not has_function_privilege('service_role', 'public.get_integration_secret(text)', 'execute') then
+    raise exception 'Service functions cannot retrieve managed integration secrets';
+  end if;
+end $$;
+
+rollback;
+
 \echo 'Security assertions passed.'

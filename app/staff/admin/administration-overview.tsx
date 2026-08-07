@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase/browser";
+import { IntegrationSettings } from "./integration-settings";
 
 type ViewState = "loading" | "signed-out" | "mfa-required" | "denied" | "ready";
 type StaffAccessRecord = {
@@ -97,6 +98,7 @@ export function AdministrationOverview() {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [canManageStaff, setCanManageStaff] = useState(false);
   const [canViewAudit, setCanViewAudit] = useState(false);
+  const [canManageIntegrations, setCanManageIntegrations] = useState(false);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [actionNotice, setActionNotice] = useState("");
@@ -176,14 +178,16 @@ export function AdministrationOverview() {
       const permissions = new Set(permissionRows?.map((row) => row.permission) ?? []);
       const staffManagement = permissions.has("staff.manage");
       const auditAccess = permissions.has("audit.view");
-      if (!staffManagement && !auditAccess) {
-        setError("Staff Management or Audit View permission is required.");
+      const integrationManagement = permissions.has("integrations.manage");
+      if (!staffManagement && !auditAccess && !integrationManagement) {
+        setError("Staff Management, Audit View, or Integration Management permission is required.");
         setView("denied");
         return;
       }
 
       setCanManageStaff(staffManagement);
       setCanViewAudit(auditAccess);
+      setCanManageIntegrations(integrationManagement);
 
       try {
         const records = await fetchProtectedRecords(staffManagement, auditAccess);
@@ -328,7 +332,7 @@ export function AdministrationOverview() {
       <section className="admin-panel admin-toolbar">
         <div>
           <p className="eyebrow">MFA verified / Least privilege</p>
-          <h2>Access and audit administration</h2>
+          <h2>Access, integrations, and audit administration</h2>
         </div>
         <Link className="text-button" href="/staff">Back to staff portal</Link>
       </section>
@@ -344,6 +348,8 @@ export function AdministrationOverview() {
         <article><span>Suspended / disabled</span><strong>{suspendedStaff}</strong></article>
         <article><span>Active role grants</span><strong>{activeRoleCount}</strong></article>
       </section>
+
+      {canManageIntegrations ? <IntegrationSettings /> : null}
 
       {canManageStaff && (
         <section className="admin-panel admin-activation-card">

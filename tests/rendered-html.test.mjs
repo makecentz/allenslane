@@ -99,9 +99,12 @@ test("server-renders the customer account route without gating public pages", as
   assert.match(stripeMigration, /grant execute on function public\.finalize_registration_checkout[\s\S]*to service_role/i);
   assert.match(checkoutFunction, /idempotencyKey: `registration-checkout-\$\{payload\.checkout_id\}`/i);
   assert.match(checkoutFunction, /Deno\.env\.get\("STRIPE_SECRET_KEY"\)/i);
+  assert.match(checkoutFunction, /rpc\("get_integration_secret", \{ p_setting_key: "stripe_secret_key" \}\)/i);
+  assert.match(checkoutFunction, /rpc\("get_integration_secret", \{ p_setting_key: "app_url" \}\)/i);
   assert.match(webhookFunction, /const rawBody = await request\.text\(\)/i);
   assert.match(webhookFunction, /constructEventAsync/i);
   assert.match(webhookFunction, /Deno\.env\.get\("STRIPE_WEBHOOK_SECRET"\)/i);
+  assert.match(webhookFunction, /rpc\("get_integration_secret", \{ p_setting_key: "stripe_webhook_secret" \}\)/i);
   assert.match(webhookFunction, /rpc\("finalize_registration_checkout"/i);
   assert.doesNotMatch(`${checkoutFunction}\n${webhookFunction}`, /sk_(?:test|live)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}/i);
   assert.doesNotMatch(householdManager, /SUPABASE_SECRET_KEY|service_role|sb_secret_/i);
@@ -202,15 +205,34 @@ test("server-renders the protected content and events overview shell", async () 
 test("server-renders the protected administration overview shell", async () => {
   const response = await render("/staff/admin");
   const administration = await readFile(new URL("../app/staff/admin/administration-overview.tsx", import.meta.url), "utf8");
+  const integrations = await readFile(new URL("../app/staff/admin/integration-settings.tsx", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../supabase/migrations/20260807083303_admin_integration_secrets.sql", import.meta.url), "utf8");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
   assert.match(html, /<title>Administration Overview \| Allens Lane Art Center<\/title>/i);
-  assert.match(html, /Manage staff-account status and role assignments with MFA, approval safeguards, and a complete audit trail/i);
+  assert.match(html, /Manage staff access, encrypted API and webhook configuration, and audit history with MFA and approval safeguards/i);
   assert.match(html, /Loading protected administration records/i);
   assert.match(administration, /functions\.invoke\("invite-staff"/i);
   assert.match(administration, /Send staff invitation/i);
+  assert.match(administration, /permissions\.has\("integrations\.manage"\)/i);
+  assert.match(administration, /<IntegrationSettings \/>/i);
+  assert.match(integrations, /\.from\("integration_settings"\)/i);
+  assert.match(integrations, /rpc\("save_integration_setting"/i);
+  assert.match(integrations, /type=\{isSecret\(setting\) \? "password"/i);
+  assert.match(integrations, /autoComplete="off"/i);
+  assert.match(integrations, /Vault managed/i);
+  assert.match(integrations, /Webhook callback URL/i);
+  assert.doesNotMatch(integrations, /SUPABASE_SERVICE_ROLE_KEY|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET/i);
+  assert.match(migration, /alter table public\.integration_settings force row level security/i);
+  assert.match(migration, /private\.authorize\('integrations\.manage'\)/i);
+  assert.match(migration, /vault\.create_secret/i);
+  assert.match(migration, /vault\.update_secret/i);
+  assert.match(migration, /join vault\.decrypted_secrets/i);
+  assert.match(migration, /grant execute on function public\.save_integration_setting[\s\S]*to authenticated/i);
+  assert.match(migration, /grant execute on function public\.get_integration_secret[\s\S]*to service_role/i);
+  assert.doesNotMatch(migration, /sk_(?:test|live)_[A-Za-z0-9]{10,}|whsec_[A-Za-z0-9]{10,}/i);
 });
 
 test("keeps the public classes page available while progressively loading the published catalog", async () => {

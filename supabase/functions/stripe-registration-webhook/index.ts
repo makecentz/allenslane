@@ -11,16 +11,32 @@ function json(body: Record<string, unknown>, status = 200) {
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  let stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+  let webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const signature = request.headers.get("stripe-signature");
 
-  if (!stripeSecretKey || !webhookSecret || !supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
     return json({ error: "Webhook is not configured" }, 503);
   }
   if (!signature) return json({ error: "Missing Stripe signature" }, 400);
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const [managedStripeKey, managedWebhookSecret] = await Promise.all([
+    supabase.rpc("get_integration_secret", { p_setting_key: "stripe_secret_key" }),
+    supabase.rpc("get_integration_secret", { p_setting_key: "stripe_webhook_secret" }),
+  ]);
+  if (typeof managedStripeKey.data === "string" && managedStripeKey.data) {
+    stripeSecretKey = managedStripeKey.data;
+  }
+  if (typeof managedWebhookSecret.data === "string" && managedWebhookSecret.data) {
+    webhookSecret = managedWebhookSecret.data;
+  }
+
+  if (!stripeSecretKey || !webhookSecret) return json({ error: "Webhook is not configured" }, 503);
 
   const stripe = new Stripe(stripeSecretKey, {
     httpClient: Stripe.createFetchHttpClient(),
@@ -39,10 +55,6 @@ Deno.serve(async (request) => {
     console.error("Stripe webhook signature rejected:", error instanceof Error ? error.message : "invalid signature");
     return json({ error: "Invalid Stripe signature" }, 400);
   }
-
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 
   try {
     if (event.type === "checkout.session.completed") {
